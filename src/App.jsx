@@ -3,7 +3,8 @@ import {
   Menu, X, Search, Heart, Share2, Phone, Send, MessageCircle, Music2,
   Sun, Moon, ChevronLeft, ChevronRight, SlidersHorizontal, Eye, Trash2,
   Pencil, Check, Plus, Upload, MapPin, GitCompareArrows, LayoutDashboard,
-  Gauge, Fuel, Cog, Palette, User, ImageIcon
+  Gauge, Fuel, Cog, Palette, User, ImageIcon, ArrowUpDown, LayoutGrid, List, Loader2,
+  ExternalLink, ShieldCheck, AlertTriangle
 } from "lucide-react";
 
 const BRANDS = ["Audi", "BMW", "Mercedes-Benz", "Volkswagen", "Toyota", "Skoda", "Renault", "Nissan", "Honda"];
@@ -104,6 +105,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <button className={view === "selection" ? "nav-link active" : "nav-link"} onClick={() => setView("selection")}>🔍 Підбір авто</button>
           <button className={view === "tradein" ? "nav-link active" : "nav-link"} onClick={() => setView("tradein")}>Trade-IN</button>
           <button className={view === "contacts" ? "nav-link active" : "nav-link"} onClick={() => setView("contacts")}>Контакти</button>
+          <button className={view === "vin" ? "nav-link active" : "nav-link"} onClick={() => setView("vin")}>VIN-перевірка</button>
         </nav>
 
         <div className="search-wrap desktop-only">
@@ -127,7 +129,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
             {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
           </button>
           <button className="btn ghost desktop-only" onClick={() => toast("Демо-версія: вхід буде доступний після підключення бекенду")}>Увійти</button>
-          <button className="btn primary" onClick={() => setView("submit")}>Подати оголошення</button>
+          <button className="btn primary" onClick={() => setView("submit")}><Plus size={15} className="btn-icon-only" /><span className="btn-label-full">Подати оголошення</span></button>
         </div>
       </div>
 
@@ -142,6 +144,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <button className="nav-link" onClick={() => { setView("selection"); setMenuOpen(false); }}>🔍 Підбір авто</button>
           <button className="nav-link" onClick={() => { setView("tradein"); setMenuOpen(false); }}>Trade-IN</button>
           <button className="nav-link" onClick={() => { setView("contacts"); setMenuOpen(false); }}>Контакти</button>
+          <button className="nav-link" onClick={() => { setView("vin"); setMenuOpen(false); }}>VIN-перевірка</button>
           <div className="mobile-menu-sep" />
           <button className="nav-link" onClick={() => { setView("favorites"); setMenuOpen(false); }}>Обране ({favCount})</button>
           <button className="nav-link" onClick={() => { setView("compare"); setMenuOpen(false); }}>Порівняння ({cmpCount})</button>
@@ -185,9 +188,9 @@ function HeroBanner({ banner, setView }) {
   );
 }
 
-function CarCard({ car, isFav, onToggleFav, isCmp, onToggleCmp, onOpen }) {
+function CarCard({ car, isFav, onToggleFav, isCmp, onToggleCmp, onOpen, layout = "grid" }) {
   return (
-    <article className="car-card" onClick={() => onOpen(car.id)}>
+    <article className={layout === "list" ? "car-card list" : "car-card"} onClick={() => onOpen(car.id)}>
       <div className="car-card-img">
         <img src={car.photos[0]} alt={`${car.brand} ${car.model}`} loading="lazy" />
         <button className={isFav ? "fav-btn active" : "fav-btn"} onClick={(e) => { e.stopPropagation(); onToggleFav(car.id); }} aria-label="Додати в обране">
@@ -304,8 +307,11 @@ function FilterPanel({ filters, setFilters, onReset }) {
 }
 
 function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareList, toggleCmp, openCar, filtersOpen, setFiltersOpen, heading = "Каталог автомобілів", intro = "" }) {
+  const [sort, setSort] = useState("default");
+  const [layout, setLayout] = useState("grid");
+
   const filtered = useMemo(() => {
-    return cars.filter((c) => {
+    const result = cars.filter((c) => {
       if (!c.published) return false;
       const q = filters.search.trim().toLowerCase();
       if (q && !(`${c.brand} ${c.model} ${c.city}`.toLowerCase().includes(q))) return false;
@@ -324,7 +330,13 @@ function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareL
       if (filters.city && c.city !== filters.city) return false;
       return true;
     });
-  }, [cars, filters]);
+    const sorted = [...result];
+    if (sort === "price-asc") sorted.sort((a, b) => a.price - b.price);
+    else if (sort === "price-desc") sorted.sort((a, b) => b.price - a.price);
+    else if (sort === "year-desc") sorted.sort((a, b) => b.year - a.year);
+    else if (sort === "mileage-asc") sorted.sort((a, b) => a.mileage - b.mileage);
+    return sorted;
+  }, [cars, filters, sort]);
 
   const [visible, setVisible] = useState(6);
 
@@ -342,16 +354,32 @@ function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareL
             <h2>{heading}</h2>
             {intro && <p className="catalog-intro">{intro}</p>}
           </div>
-          <span className="count">{filtered.length} оголошень</span>
+          <div className="catalog-controls">
+            <span className="count">{filtered.length} оголошень</span>
+            <div className="sort-wrap">
+              <ArrowUpDown size={14} />
+              <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                <option value="default">За замовчуванням</option>
+                <option value="price-asc">Дешевші спершу</option>
+                <option value="price-desc">Дорожчі спершу</option>
+                <option value="year-desc">Новіші спершу</option>
+                <option value="mileage-asc">Менший пробіг</option>
+              </select>
+            </div>
+            <div className="view-toggle">
+              <button className={layout === "grid" ? "vt-btn active" : "vt-btn"} onClick={() => setLayout("grid")} aria-label="Плитка"><LayoutGrid size={15} /></button>
+              <button className={layout === "list" ? "vt-btn active" : "vt-btn"} onClick={() => setLayout("list")} aria-label="Список"><List size={15} /></button>
+            </div>
+          </div>
         </div>
         {filtered.length === 0 ? (
           <div className="empty-state">Нічого не знайдено. Спробуйте змінити фільтри.</div>
         ) : (
           <>
-            <div className="cars-grid">
+            <div className={layout === "list" ? "cars-grid list-mode" : "cars-grid"}>
               {filtered.slice(0, visible).map((c) => (
                 <CarCard key={c.id} car={c} isFav={favorites.includes(c.id)} onToggleFav={toggleFav}
-                  isCmp={compareList.includes(c.id)} onToggleCmp={toggleCmp} onOpen={openCar} />
+                  isCmp={compareList.includes(c.id)} onToggleCmp={toggleCmp} onOpen={openCar} layout={layout} />
               ))}
             </div>
             {visible < filtered.length && (
@@ -400,7 +428,7 @@ function CarDetailView({ car, cars, favorites, toggleFav, openCar, setView, toas
               <div><span>Модель</span><b>{car.model}</b></div>
               <div><span>Комплектація</span><b>{car.trim}</b></div>
               <div><span>Рік випуску</span><b>{car.year}</b></div>
-              <div><span>VIN-код</span><b>{car.vin}</b></div>
+              <div><span>VIN-код</span><b>{car.vin} <button className="link-btn vin-inline-link" onClick={() => setView("vin")}>перевірити</button></b></div>
               <div><span>Тип кузова</span><b>{car.body}</b></div>
               <div><span>Об'єм двигуна</span><b>{car.engineVolume} л</b></div>
               <div><span>Потужність</span><b>{car.power} к.с.</b></div>
@@ -655,6 +683,67 @@ function SubmitListingView({ addCar, setView, toast }) {
   );
 }
 
+function SelectionRequestView({ toast }) {
+  const [form, setForm] = useState({ name: "", phone: "", brand: "", model: "", budgetFrom: "", budgetTo: "", yearFrom: "", yearTo: "", comment: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.phone.trim()) { toast("Вкажіть ім'я та телефон"); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, source: "Підбір авто" })
+      });
+      if (!res.ok) throw new Error("request failed");
+      toast("Заявку надіслано! Ми зв'яжемось з вами найближчим часом");
+      setForm({ name: "", phone: "", brand: "", model: "", budgetFrom: "", budgetTo: "", yearFrom: "", yearTo: "", comment: "" });
+    } catch (err) {
+      toast("Не вдалося надіслати заявку. Зателефонуйте нам напряму");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="page-simple narrow">
+      <h2>🔍 Підбір авто</h2>
+      <p className="intro-text">Розкажіть, яке авто шукаєте — підберемо варіанти з наявних і нових надходжень та звʼяжемось з вами. Заявка одразу надходить нашому менеджеру.</p>
+      <form className="listing-form" onSubmit={submit}>
+        <div className="form-section">
+          <h4>Ваші побажання</h4>
+          <div className="form-grid">
+            <div><label>Марка</label><input list="brands-selection" value={form.brand} onChange={(e) => set("brand", e.target.value)} placeholder="Наприклад, Toyota" /></div>
+            <div><label>Модель</label><input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="Наприклад, RAV4" /></div>
+            <div><label>Бюджет від, $</label><input type="number" value={form.budgetFrom} onChange={(e) => set("budgetFrom", e.target.value)} placeholder="10000" /></div>
+            <div><label>Бюджет до, $</label><input type="number" value={form.budgetTo} onChange={(e) => set("budgetTo", e.target.value)} placeholder="25000" /></div>
+            <div><label>Рік від</label><input type="number" value={form.yearFrom} onChange={(e) => set("yearFrom", e.target.value)} placeholder="2015" /></div>
+            <div><label>Рік до</label><input type="number" value={form.yearTo} onChange={(e) => set("yearTo", e.target.value)} placeholder="2023" /></div>
+          </div>
+          <datalist id="brands-selection">{BRANDS.map((b) => <option key={b} value={b} />)}</datalist>
+          <div style={{ marginTop: 12 }}>
+            <label>Коментар</label>
+            <textarea rows={3} value={form.comment} onChange={(e) => set("comment", e.target.value)} placeholder="Додаткові побажання: колір, привід, стан..." />
+          </div>
+        </div>
+        <div className="form-section">
+          <h4>Контакти</h4>
+          <div className="form-grid">
+            <div><label>Ім'я *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Ваше ім'я" /></div>
+            <div><label>Телефон *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" /></div>
+          </div>
+        </div>
+        <button className="btn primary lg" type="submit" disabled={submitting} style={{ width: "100%" }}>
+          {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилаємо...</> : "Надіслати заявку"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 function TradeInView({ toast }) {
   const [form, setForm] = useState({ brand: "", model: "", year: "", mileage: "", condition: "Добрий", phone: "", city: "" });
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -732,6 +821,88 @@ function ContactsView({ social, toast }) {
           <button className="btn primary lg" type="submit" style={{ width: "100%", marginTop: 14 }}>Надіслати</button>
         </form>
       </div>
+    </div>
+  );
+}
+
+function VinCheckView({ toast }) {
+  const [vin, setVin] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+
+  const checkVin = async (e) => {
+    e.preventDefault();
+    const clean = vin.trim().toUpperCase();
+    if (clean.length !== 17) { toast("VIN-код має містити рівно 17 символів"); return; }
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const res = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${clean}?format=json`);
+      const data = await res.json();
+      const row = data?.Results?.[0];
+      if (!row || (!row.Make && !row.Model)) {
+        setError("Не вдалося розпізнати VIN. Перевірте правильність коду.");
+      } else {
+        setResult(row);
+      }
+    } catch (err) {
+      setError("Сервіс перевірки тимчасово недоступний. Спробуйте пізніше.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fields = result ? [
+    ["Марка", result.Make], ["Модель", result.Model], ["Рік випуску", result.ModelYear],
+    ["Тип кузова", result.BodyClass], ["Двигун", result.EngineCylinders ? `${result.EngineCylinders} цил., ${result.DisplacementL || "?"} л` : "—"],
+    ["Потужність", result.EngineHP ? `${result.EngineHP} к.с.` : "—"], ["Паливо", result.FuelTypePrimary],
+    ["Привід", result.DriveType], ["Коробка передач", result.TransmissionStyle], ["Країна складання", result.PlantCountry],
+    ["Виробник", result.Manufacturer], ["Кількість дверей", result.Doors]
+  ].filter(([, v]) => v && v !== "Not Applicable") : [];
+
+  return (
+    <div className="page-simple narrow">
+      <h2>Перевірка авто по VIN-коду</h2>
+      <p className="intro-text">Введіть VIN-код (17 символів), щоб безкоштовно розшифрувати базові дані автомобіля — марку, модель, рік, двигун і країну складання.</p>
+
+      <form className="vin-form" onSubmit={checkVin}>
+        <input
+          value={vin}
+          onChange={(e) => setVin(e.target.value.toUpperCase())}
+          placeholder="Наприклад, WA1CNAFYXK2081186"
+          maxLength={17}
+          className="vin-input"
+        />
+        <button className="btn primary lg" type="submit" disabled={loading}>
+          {loading ? <><Loader2 size={16} className="spin-ic" /> Перевіряємо...</> : "Перевірити"}
+        </button>
+      </form>
+
+      {error && (
+        <div className="vin-error"><AlertTriangle size={16} /> {error}</div>
+      )}
+
+      {result && (
+        <div className="form-section" style={{ marginTop: 20 }}>
+          <h4><ShieldCheck size={15} style={{ verticalAlign: -2, marginRight: 4 }} />Розшифровка VIN</h4>
+          <div className="specs-grid">
+            {fields.map(([label, value]) => (
+              <div key={label}><span>{label}</span><b>{value}</b></div>
+            ))}
+          </div>
+
+          <div className="vin-history-cta">
+            <p>Потрібна повна історія: аукціонні фото, ДТП, статус Salvage/Clean, пробіг по одометрах? Це вже спеціалізована база даних аукціонів США.</p>
+            <a className="btn outline" href={`https://bidfax.info/?s=${encodeURIComponent(vin.trim().toUpperCase())}`} target="_blank" rel="noreferrer">
+              <ExternalLink size={15} /> Перевірити повну історію на bidfax.info
+            </a>
+          </div>
+        </div>
+      )}
+
+      <p className="vin-disclaimer">Базова розшифровка виконується через відкриту базу даних NHTSA (США) і працює для більшості VIN, виданих у Північній Америці. Дані про ДТП, аукціони та фото авто bidfax.info надає окремо на своєму сайті.</p>
     </div>
   );
 }
@@ -903,10 +1074,29 @@ export default function AvtoMixApp() {
           --border: #E4E3DF; --header-bg: #0A0A0A; --header-text: #F4F4F4;
         }
         .app-root[data-theme="dark"] {
-          --bg: #0A0A0A; --bg-alt: #1C1C1E; --surface: #1C1C1E; --surface-2: #222224;
-          --text: #F2F2F0; --text-muted: #9A9A9E; --accent: #FF7A00; --accent-text: #0A0A0A;
-          --border: #2E2E31; --header-bg: #141415; --header-text: #F2F2F0;
+          --bg: #0B0B0F; --bg-alt: #17171C; --surface: #1B1B21; --surface-2: #222229;
+          --text: #F4F3F0; --text-muted: #96959D; --accent: #FF5A36; --accent-2: #FFB238; --accent-text: #0B0B0F;
+          --border: #2B2B33; --header-bg: #0D0D11; --header-text: #F4F3F0;
         }
+        .app-root[data-theme="dark"] .btn.primary {
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
+          box-shadow: 0 6px 22px rgba(255, 90, 54, 0.28);
+        }
+        .app-root[data-theme="dark"] .btn.primary:hover { box-shadow: 0 8px 28px rgba(255, 90, 54, 0.4); opacity: 1; filter: brightness(1.05); }
+        .app-root[data-theme="dark"] .price,
+        .app-root[data-theme="dark"] .big-price {
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
+          -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .app-root[data-theme="dark"] .step-num,
+        .app-root[data-theme="dark"] .dot-badge,
+        .app-root[data-theme="dark"] .pending-tag,
+        .app-root[data-theme="dark"] .badge {
+          background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--accent-text);
+        }
+        .app-root[data-theme="dark"] .car-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 12px 28px rgba(0,0,0,0.4); }
+        .app-root[data-theme="dark"] .fav-btn.active,
+        .app-root[data-theme="dark"] .fav-btn.static.active { color: var(--accent-2); }
         .app-root { background: var(--bg); color: var(--text); }
         .app-root * { box-sizing: border-box; }
         .accent-text { color: var(--accent); }
@@ -959,6 +1149,19 @@ export default function AvtoMixApp() {
         .theme-toggle { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: var(--header-text); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .mobile-menu { background: var(--header-bg); border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
         .mobile-menu .nav-link { text-align: left; }
+        @media (max-width: 640px) {
+          .header-top-inner { padding: 6px 14px; }
+          .tagline { display: none; }
+          .header-main { padding: 10px 14px; gap: 10px; }
+          .logo-img { height: 34px; }
+          .header-actions { gap: 6px; }
+          .header-icon, .theme-toggle { width: 34px; height: 34px; }
+          .btn.primary { padding: 9px 12px; font-size: 12.5px; }
+          .icon-btn.mobile-only { width: 34px; height: 34px; }
+        }
+        @media (max-width: 380px) {
+          .btn.primary span.btn-label-full { display: none; }
+        }
 
         .hero { position: relative; overflow: hidden; }
         .hero-slide { height: 460px; background-size: cover; background-position: center; display: flex; align-items: center; position: relative; }
@@ -973,13 +1176,29 @@ export default function AvtoMixApp() {
         .hero-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
         .dot { width: 22px; height: 3px; background: rgba(255,255,255,0.4); border: none; cursor: pointer; }
         .dot.active { background: var(--accent); }
+        @media (max-width: 640px) {
+          .hero-slide { height: 380px; }
+          .hero-eyebrow { font-size: 10.5px; margin-bottom: 10px; }
+          .hero-title { font-size: 30px; max-width: 100%; }
+          .hero-sub { font-size: 14px; max-width: 100%; }
+          .hero-actions { flex-direction: column; align-items: stretch; gap: 10px; margin-top: 18px; }
+          .hero-actions .btn { justify-content: center; }
+          .hero-arrow { width: 32px; height: 32px; }
+          .hero-arrow.left { left: 10px; } .hero-arrow.right { right: 10px; }
+        }
 
-        .catalog-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px 64px; display: flex; gap: 28px; align-items: flex-start; }
+        .catalog-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px 64px; display: flex; gap: 20px; align-items: flex-start; }
         .catalog-main { flex: 1; min-width: 0; }
-        .catalog-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+        .catalog-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
         .catalog-head h2 { font-size: 24px; }
-        .count { color: var(--text-muted); font-size: 13px; }
-        .filters { width: 260px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; position: sticky; top: 100px; }
+        .count { color: var(--text-muted); font-size: 13px; white-space: nowrap; }
+        .catalog-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .sort-wrap { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; color: var(--text-muted); }
+        .sort-wrap select { border: none; background: none; padding: 8px 4px; width: auto; color: var(--text); }
+        .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .vt-btn { background: var(--surface); border: none; color: var(--text-muted); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .vt-btn.active { background: var(--accent); color: var(--accent-text); }
+        .filters { width: 224px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: sticky; top: 100px; }
         .filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .filters-head h3 { font-size: 14px; display: flex; align-items: center; gap: 6px; }
         .f-group { margin-bottom: 12px; }
@@ -995,9 +1214,15 @@ export default function AvtoMixApp() {
           .filters { width: 100%; position: static; }
         }
 
-        .cars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
+        .cars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+        .cars-grid.list-mode { display: flex; flex-direction: column; gap: 12px; }
         .car-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
         .car-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .car-card.list { display: flex; flex-direction: row; align-items: stretch; }
+        .car-card.list:hover { transform: none; }
+        .car-card.list .car-card-img { width: 220px; height: auto; flex-shrink: 0; }
+        .car-card.list .car-card-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        @media (max-width: 600px) { .car-card.list { flex-direction: column; } .car-card.list .car-card-img { width: 100%; height: 170px; } }
         .car-card-img { position: relative; height: 170px; }
         .car-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -1034,6 +1259,7 @@ export default function AvtoMixApp() {
         .detail-section { margin-top: 26px; }
         .detail-section h3 { font-size: 17px; margin-bottom: 12px; }
         .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
+        @media (max-width: 480px) { .specs-grid { grid-template-columns: 1fr; } }
         .specs-grid div { display: flex; justify-content: space-between; font-size: 13.5px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
         .specs-grid span { color: var(--text-muted); }
         .desc-text { font-size: 14.5px; line-height: 1.7; color: var(--text); }
@@ -1062,6 +1288,15 @@ export default function AvtoMixApp() {
         textarea { resize: vertical; font-family: var(--font-body); }
 
         .intro-text { color: var(--text-muted); font-size: 14.5px; margin-bottom: 22px; max-width: 620px; line-height: 1.6; }
+        .vin-form { display: flex; gap: 10px; flex-wrap: wrap; }
+        .vin-input { flex: 1; min-width: 220px; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
+        .vin-error { display: flex; align-items: center; gap: 8px; color: var(--accent); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 13.5px; }
+        .vin-history-cta { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .vin-history-cta p { color: var(--text-muted); font-size: 13px; margin-bottom: 10px; }
+        .vin-disclaimer { color: var(--text-muted); font-size: 12px; margin-top: 22px; line-height: 1.6; }
+        .vin-inline-link { font-size: 11px; margin-left: 6px; font-weight: 600; }
+        .spin-ic { animation: spin 0.8s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .tradein-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 26px; }
         @media (max-width: 640px) { .tradein-steps { grid-template-columns: 1fr; } }
         .tradein-step { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; gap: 12px; align-items: flex-start; }
@@ -1139,15 +1374,13 @@ export default function AvtoMixApp() {
           heading="Авто в наявності" />
       )}
 
-      {view === "selection" && (
-        <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
-          compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen}
-          heading="Підбір авто" intro="Скористайтеся фільтрами, щоб швидко знайти авто під ваш бюджет і потреби." />
-      )}
+      {view === "selection" && <SelectionRequestView toast={showToast} />}
 
       {view === "tradein" && <TradeInView toast={showToast} />}
 
       {view === "contacts" && <ContactsView social={social} toast={showToast} />}
+
+      {view === "vin" && <VinCheckView toast={showToast} />}
 
       {view === "detail" && selectedCar && (
         <CarDetailView car={selectedCar} cars={cars} favorites={favorites} toggleFav={toggleFav} openCar={openCar}
