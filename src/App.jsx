@@ -96,7 +96,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
         </button>
 
         <div className="logo" onClick={() => setView("home")} role="button" tabIndex={0}>
-          <img src="/logo.png" alt="Avto Mix" className="logo-img" />
+          <span className="logo-word"><span className="logo-avto">Avto</span><span className="logo-mix">Mix</span></span>
         </div>
 
         <nav className="main-nav desktop-only">
@@ -999,7 +999,7 @@ function Footer({ social }) {
   return (
     <footer className="footer">
       <div className="footer-inner">
-        <div className="logo footer-logo"><img src="/logo.png" alt="Avto Mix" className="logo-img footer-logo-img" /></div>
+        <div className="logo footer-logo"><span className="logo-word"><span className="logo-avto">Avto</span><span className="logo-mix">Mix</span></span></div>
         <p>Купуйте та продавайте автомобілі легко — тисячі перевірених оголошень по всій Україні.</p>
         <div className="socials">
           <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={16} /></SocialIcon>
@@ -1131,7 +1131,10 @@ export default function AvtoMixApp() {
         .social-ic:hover { border-color: var(--accent); color: var(--accent); }
         .header-main { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
         .logo { display: flex; align-items: center; gap: 9px; cursor: pointer; }
-        .logo-img { height: 46px; width: auto; display: block; }
+        .logo-word { font-family: var(--font-display); font-weight: 700; font-size: 25px; letter-spacing: 0.3px; }
+        .logo-avto { color: #FF8A2B; }
+        .logo-mix { color: #E8281C; }
+        .footer-logo .logo-word { font-size: 28px; }
         .main-nav { gap: 4px; margin-left: 8px; }
         .nav-link { background: none; border: none; color: #c9c9c9; font-weight: 600; font-size: 13.5px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap; }
         .nav-link:hover { color: var(--header-text); }
@@ -1153,7 +1156,7 @@ export default function AvtoMixApp() {
           .header-top-inner { padding: 6px 14px; }
           .tagline { display: none; }
           .header-main { padding: 10px 14px; gap: 10px; }
-          .logo-img { height: 34px; }
+          .logo-word { font-size: 19px; }
           .header-actions { gap: 6px; }
           .header-icon, .theme-toggle { width: 34px; height: 34px; }
           .btn.primary { padding: 9px 12px; font-size: 12.5px; }
@@ -1187,18 +1190,18 @@ export default function AvtoMixApp() {
           .hero-arrow.left { left: 10px; } .hero-arrow.right { right: 10px; }
         }
 
-        .catalog-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px 64px; display: flex; gap: 20px; align-items: flex-start; }
+        .catalog-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px 64px 16px; display: flex; gap: 18px; align-items: flex-start; }
         .catalog-main { flex: 1; min-width: 0; }
         .catalog-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
         .catalog-head h2 { font-size: 24px; }
         .count { color: var(--text-muted); font-size: 13px; white-space: nowrap; }
         .catalog-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-        .sort-wrap { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; color: var(--text-muted); }
-        .sort-wrap select { border: none; background: none; padding: 8px 4px; width: auto; color: var(--text); }
+        .sort-wrap { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1.5px solid var(--accent); border-radius: 8px; padding: 0 10px; color: var(--accent); }
+        .sort-wrap select { border: none; background: none; padding: 8px 4px; width: auto; color: var(--accent); font-weight: 600; }
         .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
         .vt-btn { background: var(--surface); border: none; color: var(--text-muted); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .vt-btn.active { background: var(--accent); color: var(--accent-text); }
-        .filters { width: 224px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: sticky; top: 100px; }
+        .filters { width: 260px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: sticky; top: 100px; }
         .filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .filters-head h3 { font-size: 14px; display: flex; align-items: center; gap: 6px; }
         .f-group { margin-bottom: 12px; }
@@ -1347,7 +1350,6 @@ export default function AvtoMixApp() {
         .footer { background: var(--header-bg); color: var(--header-text); margin-top: auto; padding: 40px 24px 24px; }
         .footer-inner { max-width: 1280px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
         .footer-logo { justify-content: center; }
-        .footer-logo-img { height: 58px; }
         .catalog-intro { color: var(--text-muted); font-size: 13.5px; margin-top: 4px; max-width: 560px; }
         .footer p { color: #b8b8b8; font-size: 13.5px; max-width: 440px; }
         .copyright { font-size: 11.5px; color: #7a7a7a; margin-top: 12px; }
