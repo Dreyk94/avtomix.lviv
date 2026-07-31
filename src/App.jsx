@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { supabase, supabaseReady } from "./supabaseClient";
 import {
   Menu, X, Search, Heart, Share2, Phone, Send, MessageCircle, Music2,
   Sun, Moon, ChevronLeft, ChevronRight, SlidersHorizontal, Eye, Trash2,
   Pencil, Check, Plus, Upload, MapPin, GitCompareArrows, LayoutDashboard,
   Gauge, Fuel, Cog, Palette, User, ImageIcon, ArrowUpDown, LayoutGrid, List, Loader2,
-  ExternalLink, ShieldCheck, AlertTriangle
+  ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock
 } from "lucide-react";
 
 const BRANDS = ["Audi", "BMW", "Mercedes-Benz", "Volkswagen", "Toyota", "Skoda", "Renault", "Nissan", "Honda"];
@@ -76,12 +77,14 @@ function SocialIcon({ href, label, children }) {
   );
 }
 
-function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, setMenuOpen, social, favCount, cmpCount, toast }) {
+function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, setMenuOpen, social, favCount, cmpCount, toast, session, profile, onLogout }) {
+  const isAdmin = !supabaseReady || profile?.role === "admin";
+  const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   return (
     <header className="header">
       <div className="header-top">
         <div className="header-top-inner">
-          <span className="tagline">Купівля та продаж авто по Львівській області</span>
+          <span className="tagline">Купівля та продаж авто по всій Україні</span>
           <div className="socials">
             <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={15} /></SocialIcon>
             <SocialIcon href={social.telegram} label="Telegram"><Send size={15} /></SocialIcon>
@@ -122,13 +125,21 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
             <GitCompareArrows size={17} />
             {cmpCount > 0 && <span className="dot-badge">{cmpCount}</span>}
           </button>
-          <button className="icon-btn header-icon desktop-only" onClick={() => setView("admin")} aria-label="Адмін-панель">
-            <LayoutDashboard size={17} />
-          </button>
+          {isAdmin && (
+            <button className="icon-btn header-icon desktop-only" onClick={() => setView("admin")} aria-label="Адмін-панель">
+              <LayoutDashboard size={17} />
+            </button>
+          )}
           <button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label="Перемкнути тему">
             {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
           </button>
-          <button className="btn ghost desktop-only" onClick={() => toast("Демо-версія: вхід буде доступний після підключення бекенду")}>Увійти</button>
+          {session ? (
+            <button className="btn ghost desktop-only" onClick={onLogout}><LogOut size={14} /> Вийти</button>
+          ) : (
+            <button className="btn ghost desktop-only" onClick={() => setView(supabaseReady ? "auth" : "home")}>
+              {supabaseReady ? <><LogIn size={14} /> Увійти</> : "Увійти"}
+            </button>
+          )}
           <button className="btn primary" onClick={() => setView("submit")}><Plus size={15} className="btn-icon-only" /><span className="btn-label-full">Подати оголошення</span></button>
         </div>
       </div>
@@ -148,8 +159,14 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <div className="mobile-menu-sep" />
           <button className="nav-link" onClick={() => { setView("favorites"); setMenuOpen(false); }}>Обране ({favCount})</button>
           <button className="nav-link" onClick={() => { setView("compare"); setMenuOpen(false); }}>Порівняння ({cmpCount})</button>
-          <button className="nav-link" onClick={() => { setView("admin"); setMenuOpen(false); }}>Адмін-панель</button>
-          <button className="btn ghost" onClick={() => toast("Демо-версія: вхід буде доступний після підключення бекенду")}>Увійти</button>
+          {isAdmin && <button className="nav-link" onClick={() => { setView("admin"); setMenuOpen(false); }}>Адмін-панель</button>}
+          {session ? (
+            <button className="btn ghost" onClick={() => { onLogout(); setMenuOpen(false); }}><LogOut size={14} /> Вийти</button>
+          ) : (
+            <button className="btn ghost" onClick={() => { setView(supabaseReady ? "auth" : "home"); setMenuOpen(false); }}>
+              {supabaseReady ? <><LogIn size={14} /> Увійти</> : "Увійти"}
+            </button>
+          )}
         </div>
       )}
     </header>
@@ -556,8 +573,8 @@ function PhotoDrop({ photos, setPhotos }) {
 
   const addFiles = (files) => {
     const arr = Array.from(files).slice(0, Math.max(0, 30 - photos.length));
-    const urls = arr.map((f) => URL.createObjectURL(f));
-    setPhotos((p) => [...p, ...urls].slice(0, 30));
+    const entries = arr.map((f) => ({ url: URL.createObjectURL(f), file: f }));
+    setPhotos((p) => [...p, ...entries].slice(0, 30));
   };
 
   return (
@@ -578,7 +595,7 @@ function PhotoDrop({ photos, setPhotos }) {
         <div className="photo-grid">
           {photos.map((p, i) => (
             <div key={i} className="photo-thumb-wrap">
-              <img src={p} alt="" />
+              <img src={p.url} alt="" />
               {i === 0 && <span className="main-photo-tag">Головне</span>}
               <button type="button" className="photo-remove" onClick={() => setPhotos((ph) => ph.filter((_, idx) => idx !== i))} aria-label="Видалити фото"><X size={13} /></button>
             </div>
@@ -589,30 +606,85 @@ function PhotoDrop({ photos, setPhotos }) {
   );
 }
 
-function SubmitListingView({ addCar, setView, toast }) {
+
+function SubmitListingView({ addCar, setView, toast, session, profile }) {
   const [form, setForm] = useState({
     brand: "", model: "", trim: "", year: "", vin: "", engineVolume: "", power: "", fuel: FUEL_TYPES[0],
     trans: TRANSMISSIONS[0], drive: DRIVES[0], color: "", mileage: "", owners: "1", body: BODY_TYPES[0],
     desc: "", price: "", city: "", phone: "", telegram: "", viber: "", whatsapp: "", tiktokUrl: ""
   });
   const [photos, setPhotos] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  if (supabaseReady && !session) {
+    return (
+      <div className="page-simple narrow">
+        <h2>Подати оголошення</h2>
+        <div className="access-gate">
+          <Lock size={22} />
+          <p>Щоб подати оголошення, спершу увійдіть або зареєструйтесь.</p>
+          <button className="btn primary" onClick={() => setView("auth")}>Увійти / зареєструватись</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (supabaseReady && profile && profile.role === "user") {
+    return (
+      <div className="page-simple narrow">
+        <h2>Подати оголошення</h2>
+        <div className="access-gate">
+          <Lock size={22} />
+          <p>У вашого акаунта поки немає доступу до публікації оголошень. Зверніться до адміністратора сайту, щоб отримати доступ.</p>
+        </div>
+      </div>
+    );
+  }
 
   const required = ["brand", "model", "year", "engineVolume", "power", "mileage", "desc", "price", "city", "phone"];
   const missing = required.filter((k) => !String(form[k]).trim());
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (missing.length > 0) { toast("Заповніть усі обов'язкові поля"); return; }
-    addCar({
+
+    const carData = {
       ...form,
       year: Number(form.year), engineVolume: Number(form.engineVolume), power: Number(form.power),
-      mileage: Number(form.mileage), owners: Number(form.owners) || 1, price: Number(form.price),
-      photos: photos.length > 0 ? photos : makePhotos(`new-${Date.now()}`, 3),
-      published: false, views: 0
-    });
-    toast("Оголошення надіслано на модерацію");
-    setView("home");
+      mileage: Number(form.mileage), owners: Number(form.owners) || 1, price: Number(form.price)
+    };
+
+    if (supabaseReady) {
+      if (photos.length === 0) { toast("Додайте хоча б одне фото авто"); return; }
+      setSubmitting(true);
+      try {
+        const uploadedUrls = [];
+        for (let i = 0; i < photos.length; i++) {
+          const { file } = photos[i];
+          const path = `${Date.now()}-${i}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+          const { error: upErr } = await supabase.storage.from("car-photos").upload(path, file);
+          if (upErr) throw upErr;
+          const { data } = supabase.storage.from("car-photos").getPublicUrl(path);
+          uploadedUrls.push(data.publicUrl);
+        }
+        await addCar({ ...carData, photos: uploadedUrls, published: false, views: 0 });
+        toast("Оголошення надіслано на модерацію");
+        setView("home");
+      } catch (err) {
+        toast(err.message || "Не вдалося надіслати оголошення");
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      addCar({
+        ...carData,
+        photos: photos.length > 0 ? photos.map((p) => p.url) : makePhotos(`new-${Date.now()}`, 3),
+        published: false, views: 0
+      });
+      toast("Оголошення надіслано на модерацію");
+      setView("home");
+    }
   };
 
   return (
@@ -677,7 +749,9 @@ function SubmitListingView({ addCar, setView, toast }) {
           <PhotoDrop photos={photos} setPhotos={setPhotos} />
         </div>
 
-        <button className="btn primary lg" type="submit" style={{ width: "100%" }}>Надіслати на модерацію</button>
+        <button className="btn primary lg" type="submit" disabled={submitting} style={{ width: "100%" }}>
+          {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилаємо...</> : "Надіслати на модерацію"}
+        </button>
       </form>
     </div>
   );
@@ -907,14 +981,85 @@ function VinCheckView({ toast }) {
   );
 }
 
-function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast }) {
+function AuthView({ setView, toast }) {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (!supabaseReady) {
+    return (
+      <div className="page-simple narrow">
+        <h2>Реєстрація і вхід</h2>
+        <div className="vin-error"><AlertTriangle size={16} /> База даних ще не підключена. Додайте VITE_SUPABASE_URL і VITE_SUPABASE_ANON_KEY в змінні середовища Vercel.</div>
+      </div>
+    );
+  }
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) { toast("Вкажіть email і пароль"); return; }
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw error;
+        toast("Вхід виконано");
+        setView("home");
+      } else {
+        const { error } = await supabase.auth.signUp({ email: email.trim(), password });
+        if (error) throw error;
+        toast("Реєстрація успішна! Перевірте пошту, якщо потрібне підтвердження");
+        setView("home");
+      }
+    } catch (err) {
+      toast(err.message === "Invalid login credentials" ? "Невірний email або пароль" : (err.message || "Сталася помилка"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="page-simple narrow">
+      <h2>{mode === "login" ? "Вхід" : "Реєстрація"}</h2>
+      <p className="intro-text">
+        {mode === "login" ? "Увійдіть, щоб керувати оголошеннями." : "Створіть акаунт. За замовчуванням новий акаунт не має доступу до публікації — доступ надає адміністратор."}
+      </p>
+      <form className="form-section" onSubmit={submit} style={{ maxWidth: 420 }}>
+        <div style={{ marginBottom: 14 }}>
+          <label>Email</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        </div>
+        <div>
+          <label>Пароль</label>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Мінімум 6 символів" />
+        </div>
+        <button className="btn primary lg" type="submit" disabled={loading} style={{ width: "100%", marginTop: 18 }}>
+          {loading ? <><Loader2 size={16} className="spin-ic" /> Зачекайте...</> : (mode === "login" ? "Увійти" : "Зареєструватися")}
+        </button>
+        <button type="button" className="link-btn" style={{ marginTop: 14 }} onClick={() => setMode(mode === "login" ? "register" : "login")}>
+          {mode === "login" ? "Ще немає акаунта? Зареєструватися" : "Вже є акаунт? Увійти"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast, updateCar, deleteCar }) {
   const [tab, setTab] = useState("listings");
   const totalViews = cars.reduce((s, c) => s + c.views, 0);
   const published = cars.filter((c) => c.published).length;
   const pending = cars.length - published;
 
-  const patchCar = (id, patch) => setCars((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)));
-  const removeCar = (id) => { setCars((cs) => cs.filter((c) => c.id !== id)); toast("Оголошення видалено"); };
+  const patchCar = (id, patch) => {
+    if (supabaseReady && updateCar) { updateCar(id, patch); return; }
+    setCars((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  };
+  const removeCar = (id) => {
+    if (supabaseReady && deleteCar) { deleteCar(id); return; }
+    setCars((cs) => cs.filter((c) => c.id !== id));
+    toast("Оголошення видалено");
+  };
 
   return (
     <div className="page-simple">
@@ -1019,11 +1164,13 @@ export default function AvtoMixApp() {
   const [selectedId, setSelectedId] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [cars, setCars] = useState(seedCars);
+  const [cars, setCars] = useState(supabaseReady ? [] : seedCars());
   const [favorites, setFavorites] = useState([]);
   const [compareList, setCompareList] = useState([]);
   const [filters, setFilters] = useState(emptyFilters);
   const [toast, showToast] = useToast();
+  const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [social, setSocial] = useState({
     tiktok: "https://www.tiktok.com/@avtomix",
     telegram: "https://t.me/avtomix_lviv",
@@ -1038,6 +1185,57 @@ export default function AvtoMixApp() {
     ]
   });
 
+  // --- Supabase <-> app data mapping ---
+  const dbToCar = (row) => ({
+    id: row.id, ownerId: row.owner_id, brand: row.brand, model: row.model, trim: row.trim, year: row.year,
+    vin: row.vin || "—", engineVolume: row.engine_volume, power: row.power, fuel: row.fuel, trans: row.trans,
+    drive: row.drive, color: row.color, mileage: row.mileage, owners: row.owners, body: row.body,
+    desc: row.description, price: row.price, city: row.city, phone: row.phone, telegram: row.telegram,
+    viber: row.viber, whatsapp: row.whatsapp, tiktokUrl: row.tiktok_url, photos: row.photos || [],
+    published: row.published, views: row.views || 0, createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now()
+  });
+  const carToDb = (data) => ({
+    brand: data.brand, model: data.model, trim: data.trim || "", year: data.year, vin: data.vin || null,
+    engine_volume: data.engineVolume, power: data.power, fuel: data.fuel, trans: data.trans, drive: data.drive,
+    color: data.color || "", mileage: data.mileage, owners: data.owners, body: data.body,
+    description: data.desc, price: data.price, city: data.city, phone: data.phone,
+    telegram: data.telegram || null, viber: data.viber || null, whatsapp: data.whatsapp || null,
+    tiktok_url: data.tiktokUrl || null, photos: data.photos || [], published: data.published ?? false, views: data.views ?? 0
+  });
+
+  const fetchCars = async () => {
+    if (!supabaseReady) return;
+    const { data, error } = await supabase.from("cars").select("*").order("created_at", { ascending: false });
+    if (error) { showToast(error.message); return; }
+    setCars((data || []).map(dbToCar));
+  };
+
+  // Auth session tracking
+  useEffect(() => {
+    if (!supabaseReady) return;
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => setSession(sess));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // Load own profile (contains role) whenever the logged-in user changes
+  useEffect(() => {
+    if (!supabaseReady) return;
+    if (!session?.user?.id) { setProfile(null); return; }
+    supabase.from("profiles").select("*").eq("id", session.user.id).single()
+      .then(({ data }) => setProfile(data || null));
+  }, [session?.user?.id]);
+
+  // Load cars whenever auth state changes (RLS visibility can depend on role)
+  useEffect(() => { fetchCars(); }, [session?.user?.id]);
+
+  const onLogout = async () => {
+    if (!supabaseReady) return;
+    await supabase.auth.signOut();
+    showToast("Ви вийшли з акаунта");
+    setView("home");
+  };
+
   const query = filters.search;
   const setQuery = (v) => setFilters((f) => ({ ...f, search: v }));
 
@@ -1048,8 +1246,52 @@ export default function AvtoMixApp() {
     return [...c, id];
   });
   const openCar = (id) => { setSelectedId(id); setView("detail"); window.scrollTo(0, 0); };
-  const registerView = (id) => setCars((cs) => cs.map((c) => (c.id === id ? { ...c, views: c.views + 1 } : c)));
-  const addCar = (data) => setCars((cs) => [{ id: `car-${Date.now()}`, vin: data.vin || "—", createdAt: Date.now(), ...data }, ...cs]);
+
+  const registerView = (id) => {
+    setCars((cs) => cs.map((c) => (c.id === id ? { ...c, views: c.views + 1 } : c)));
+    if (supabaseReady) {
+      const car = cars.find((c) => c.id === id);
+      if (car) supabase.from("cars").update({ views: (car.views || 0) + 1 }).eq("id", id).then(() => {});
+    }
+  };
+
+  const addCar = async (data) => {
+    if (supabaseReady) {
+      const payload = { ...carToDb(data), owner_id: session?.user?.id || null };
+      const { error } = await supabase.from("cars").insert(payload);
+      if (error) throw error;
+      await fetchCars();
+    } else {
+      setCars((cs) => [{ id: `car-${Date.now()}`, vin: data.vin || "—", createdAt: Date.now(), ...data }, ...cs]);
+    }
+  };
+
+  const updateCar = async (id, patch) => {
+    if (supabaseReady) {
+      const dbPatch = {};
+      Object.keys(patch).forEach((k) => {
+        if (k === "published") dbPatch.published = patch.published;
+        else if (k === "views") dbPatch.views = patch.views;
+      });
+      const { error } = await supabase.from("cars").update(dbPatch).eq("id", id);
+      if (error) { showToast(error.message); return; }
+      await fetchCars();
+    } else {
+      setCars((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+    }
+  };
+
+  const deleteCar = async (id) => {
+    if (supabaseReady) {
+      const { error } = await supabase.from("cars").delete().eq("id", id);
+      if (error) { showToast(error.message); return; }
+      await fetchCars();
+      showToast("Оголошення видалено");
+    } else {
+      setCars((cs) => cs.filter((c) => c.id !== id));
+      showToast("Оголошення видалено");
+    }
+  };
 
   const selectedCar = cars.find((c) => c.id === selectedId);
 
@@ -1217,7 +1459,9 @@ export default function AvtoMixApp() {
           .filters { width: 100%; position: static; }
         }
 
-        .cars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+        .cars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        @media (max-width: 1000px) { .cars-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px) { .cars-grid { grid-template-columns: 1fr; } }
         .cars-grid.list-mode { display: flex; flex-direction: column; gap: 12px; }
         .car-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
         .car-card:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -1282,6 +1526,8 @@ export default function AvtoMixApp() {
         .row-label { text-align: left !important; color: var(--text-muted); background: var(--surface-2); }
 
         .listing-form { display: flex; flex-direction: column; gap: 22px; }
+        .access-gate { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 34px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-muted); }
+        .access-gate p { max-width: 380px; font-size: 14px; line-height: 1.6; }
         .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
         .form-section h4 { font-size: 14px; margin-bottom: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; }
         .form-section label { display: block; font-size: 12px; color: var(--text-muted); margin: 0 0 5px; }
@@ -1360,7 +1606,8 @@ export default function AvtoMixApp() {
       `}</style>
 
       <Header theme={theme} setTheme={setTheme} view={view} setView={setView} query={query} setQuery={setQuery}
-        menuOpen={menuOpen} setMenuOpen={setMenuOpen} social={social} favCount={favorites.length} cmpCount={compareList.length} toast={showToast} />
+        menuOpen={menuOpen} setMenuOpen={setMenuOpen} social={social} favCount={favorites.length} cmpCount={compareList.length} toast={showToast}
+        session={session} profile={profile} onLogout={onLogout} />
 
       {view === "home" && (
         <>
@@ -1395,10 +1642,22 @@ export default function AvtoMixApp() {
 
       {view === "compare" && <CompareView cars={cars} compareList={compareList} toggleCmp={toggleCmp} />}
 
-      {view === "submit" && <SubmitListingView addCar={addCar} setView={setView} toast={showToast} />}
+      {view === "auth" && <AuthView setView={setView} toast={showToast} />}
+
+      {view === "submit" && <SubmitListingView addCar={addCar} setView={setView} toast={showToast} session={session} profile={profile} />}
 
       {view === "admin" && (
-        <AdminView cars={cars} setCars={setCars} banner={banner} setBanner={setBanner} social={social} setSocial={setSocial} toast={showToast} />
+        (!supabaseReady || profile?.role === "admin") ? (
+          <AdminView cars={cars} setCars={setCars} banner={banner} setBanner={setBanner} social={social} setSocial={setSocial}
+            toast={showToast} updateCar={updateCar} deleteCar={deleteCar} />
+        ) : (
+          <div className="page-simple narrow">
+            <div className="access-gate">
+              <Lock size={22} />
+              <p>Адмін-панель доступна лише адміністратору сайту.</p>
+            </div>
+          </div>
+        )
       )}
 
       <Footer social={social} />
