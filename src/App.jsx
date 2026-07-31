@@ -84,7 +84,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
     <header className="header">
       <div className="header-top">
         <div className="header-top-inner">
-          <span className="tagline">Купівля та продаж авто по всій Україні</span>
+          <span className="tagline">Купівля та продаж авто по Львівській області</span>
           <div className="socials">
             <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={15} /></SocialIcon>
             <SocialIcon href={social.telegram} label="Telegram"><Send size={15} /></SocialIcon>
