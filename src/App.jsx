@@ -492,9 +492,6 @@ function CarDetailView({ car, cars, favorites, toggleFav, openCar, setView, toas
 
             <div className="contact-buttons">
               <a className="btn primary block" href={`tel:${car.phone.replace(/\s/g, "")}`}><Phone size={16} /> Подзвонити</a>
-              <a className="btn outline block" href={car.telegram} target="_blank" rel="noreferrer"><Send size={16} /> Telegram</a>
-              <a className="btn outline block" href={car.viber} target="_blank" rel="noreferrer"><Phone size={16} /> Viber</a>
-              <a className="btn outline block" href={car.whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={16} /> WhatsApp</a>
               {car.tiktokUrl && (
                 <a className="btn tiktok block" href={car.tiktokUrl} target="_blank" rel="noreferrer"><Music2 size={16} /> Дивитися відео в TikTok</a>
               )}
@@ -635,7 +632,7 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
   const [form, setForm] = useState({
     brand: "", model: "", trim: "", year: "", vin: "", engineVolume: "", power: "", fuel: FUEL_TYPES[0],
     trans: TRANSMISSIONS[0], drive: DRIVES[0], color: "", mileage: "", owners: "1", body: BODY_TYPES[0],
-    desc: "", price: "", city: "", phone: "", telegram: "", viber: "", whatsapp: "", tiktokUrl: ""
+    desc: "", price: "", city: "", phone: "", tiktokUrl: ""
   });
   const [photos, setPhotos] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -666,8 +663,10 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
     );
   }
 
-  const required = ["brand", "model", "year", "engineVolume", "power", "mileage", "desc", "price", "city", "phone"];
+  const required = ["brand", "price", "phone"];
   const missing = required.filter((k) => !String(form[k]).trim());
+
+  const autoPublish = supabaseReady && profile && (profile.role === "admin" || profile.role === "publisher");
 
   const submit = async (e) => {
     e.preventDefault();
@@ -692,8 +691,8 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
           const { data } = supabase.storage.from("car-photos").getPublicUrl(path);
           uploadedUrls.push(data.publicUrl);
         }
-        await addCar({ ...carData, photos: uploadedUrls, published: false, views: 0 });
-        toast("Оголошення надіслано на модерацію");
+        await addCar({ ...carData, photos: uploadedUrls, published: autoPublish, views: 0 });
+        toast(autoPublish ? "Оголошення опубліковано" : "Оголошення надіслано на модерацію");
         setView("home");
       } catch (err) {
         toast(err.message || "Не вдалося надіслати оголошення");
@@ -704,9 +703,9 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
       addCar({
         ...carData,
         photos: photos.length > 0 ? photos.map((p) => p.url) : makePhotos(`new-${Date.now()}`, 3),
-        published: false, views: 0
+        published: autoPublish, views: 0
       });
-      toast("Оголошення надіслано на модерацію");
+      toast(autoPublish ? "Оголошення опубліковано" : "Оголошення надіслано на модерацію");
       setView("home");
     }
   };
@@ -718,10 +717,16 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
         <div className="form-section">
           <h4>Основна інформація</h4>
           <div className="form-grid">
-            <div><label>Марка *</label><input list="brands" value={form.brand} onChange={(e) => set("brand", e.target.value)} placeholder="Наприклад, Audi" /></div>
-            <div><label>Модель *</label><input value={form.model} onChange={(e) => set("model", e.target.value)} placeholder="Наприклад, Q5" /></div>
+            <div><label>Марка *</label><input list="brands" value={form.brand} onChange={(e) => { set("brand", e.target.value); set("model", ""); }} placeholder="Наприклад, Audi" /></div>
+            <div>
+              <label>Модель</label>
+              <select value={form.model} onChange={(e) => set("model", e.target.value)}>
+                <option value="">Оберіть модель</option>
+                {(MODELS_BY_BRAND[form.brand] || []).map((m) => <option key={m}>{m}</option>)}
+              </select>
+            </div>
             <div><label>Комплектація</label><input value={form.trim} onChange={(e) => set("trim", e.target.value)} placeholder="Prestige" /></div>
-            <div><label>Рік випуску *</label><input type="number" value={form.year} onChange={(e) => set("year", e.target.value)} placeholder="2019" /></div>
+            <div><label>Рік випуску</label><input type="number" value={form.year} onChange={(e) => set("year", e.target.value)} placeholder="2019" /></div>
             <div><label>VIN-код</label><input value={form.vin} onChange={(e) => set("vin", e.target.value)} placeholder="Необов'язково" /></div>
             <div><label>Тип кузова</label><select value={form.body} onChange={(e) => set("body", e.target.value)}>{BODY_TYPES.map((b) => <option key={b}>{b}</option>)}</select></div>
           </div>
@@ -731,24 +736,24 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
         <div className="form-section">
           <h4>Технічні характеристики</h4>
           <div className="form-grid">
-            <div><label>Об'єм двигуна, л *</label><input type="number" step="0.1" value={form.engineVolume} onChange={(e) => set("engineVolume", e.target.value)} placeholder="2.0" /></div>
-            <div><label>Потужність, к.с. *</label><input type="number" value={form.power} onChange={(e) => set("power", e.target.value)} placeholder="190" /></div>
+            <div><label>Об'єм двигуна, л</label><input type="number" step="0.1" value={form.engineVolume} onChange={(e) => set("engineVolume", e.target.value)} placeholder="2.0" /></div>
+            <div><label>Потужність, к.с.</label><input type="number" value={form.power} onChange={(e) => set("power", e.target.value)} placeholder="190" /></div>
             <div><label>Тип пального</label><select value={form.fuel} onChange={(e) => set("fuel", e.target.value)}>{FUEL_TYPES.map((f) => <option key={f}>{f}</option>)}</select></div>
             <div><label>Коробка передач</label><select value={form.trans} onChange={(e) => set("trans", e.target.value)}>{TRANSMISSIONS.map((t) => <option key={t}>{t}</option>)}</select></div>
             <div><label>Привід</label><select value={form.drive} onChange={(e) => set("drive", e.target.value)}>{DRIVES.map((d) => <option key={d}>{d}</option>)}</select></div>
             <div><label>Колір</label><input value={form.color} onChange={(e) => set("color", e.target.value)} placeholder="Чорний" /></div>
-            <div><label>Пробіг, км *</label><input type="number" value={form.mileage} onChange={(e) => set("mileage", e.target.value)} placeholder="84000" /></div>
+            <div><label>Пробіг, км</label><input type="number" value={form.mileage} onChange={(e) => set("mileage", e.target.value)} placeholder="84000" /></div>
             <div><label>Кількість власників</label><input type="number" value={form.owners} onChange={(e) => set("owners", e.target.value)} placeholder="1" /></div>
           </div>
         </div>
 
         <div className="form-section">
           <h4>Опис і ціна</h4>
-          <label>Опис *</label>
+          <label>Опис</label>
           <textarea rows={4} value={form.desc} onChange={(e) => set("desc", e.target.value)} placeholder="Розкажіть про стан авто, комплектацію, історію обслуговування..." />
           <div className="form-grid" style={{ marginTop: 12 }}>
             <div><label>Ціна, $ *</label><input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} placeholder="24900" /></div>
-            <div><label>Місто *</label><select value={form.city} onChange={(e) => set("city", e.target.value)}><option value="">Оберіть місто</option>{CITIES.map((c) => <option key={c}>{c}</option>)}</select></div>
+            <div><label>Місто</label><select value={form.city} onChange={(e) => set("city", e.target.value)}><option value="">Оберіть місто</option>{CITIES.map((c) => <option key={c}>{c}</option>)}</select></div>
           </div>
         </div>
 
@@ -756,9 +761,6 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
           <h4>Контакти</h4>
           <div className="form-grid">
             <div><label>Телефон *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" /></div>
-            <div><label>Telegram</label><input value={form.telegram} onChange={(e) => set("telegram", e.target.value)} placeholder="https://t.me/..." /></div>
-            <div><label>Viber</label><input value={form.viber} onChange={(e) => set("viber", e.target.value)} placeholder="Посилання або номер" /></div>
-            <div><label>WhatsApp</label><input value={form.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} placeholder="https://wa.me/..." /></div>
           </div>
         </div>
 
