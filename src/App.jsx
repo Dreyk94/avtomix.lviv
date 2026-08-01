@@ -5,7 +5,7 @@ import {
   Sun, Moon, ChevronLeft, ChevronRight, SlidersHorizontal, Eye, Trash2,
   Pencil, Check, Plus, Upload, MapPin, GitCompareArrows, LayoutDashboard,
   Gauge, Fuel, Cog, Palette, User, ImageIcon, ArrowUpDown, LayoutGrid, List, Loader2,
-  ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock
+  ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock, Maximize2
 } from "lucide-react";
 
 const BRANDS = ["Audi", "BMW", "Mercedes-Benz", "Volkswagen", "Toyota", "Skoda", "Renault", "Nissan", "Honda"];
@@ -411,7 +411,20 @@ function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareL
 
 function CarDetailView({ car, cars, favorites, toggleFav, openCar, setView, toast, onView }) {
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
   useEffect(() => { onView(car.id); setPhotoIdx(0); }, [car.id]);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setFullscreen(false);
+      if (e.key === "ArrowLeft") setPhotoIdx((i) => (i - 1 + car.photos.length) % car.photos.length);
+      if (e.key === "ArrowRight") setPhotoIdx((i) => (i + 1) % car.photos.length);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [fullscreen, car.photos.length]);
 
   const similar = cars.filter((c) => c.id !== car.id && c.published && (c.brand === car.brand || c.body === car.body)).slice(0, 3);
   const isFav = favorites.includes(car.id);
@@ -428,9 +441,10 @@ function CarDetailView({ car, cars, favorites, toggleFav, openCar, setView, toas
       <div className="detail-grid">
         <div className="gallery">
           <div className="gallery-main">
-            <img src={car.photos[photoIdx]} alt={`${car.brand} ${car.model}`} />
+            <img src={car.photos[photoIdx]} alt={`${car.brand} ${car.model}`} onClick={() => setFullscreen(true)} style={{ cursor: "zoom-in" }} />
             <button className="hero-arrow left" onClick={() => setPhotoIdx((photoIdx - 1 + car.photos.length) % car.photos.length)}><ChevronLeft size={18} /></button>
             <button className="hero-arrow right" onClick={() => setPhotoIdx((photoIdx + 1) % car.photos.length)}><ChevronRight size={18} /></button>
+            <button className="gallery-expand-btn" onClick={() => setFullscreen(true)} aria-label="На весь екран"><Maximize2 size={16} /></button>
           </div>
           <div className="gallery-thumbs">
             {car.photos.map((p, i) => (
@@ -500,6 +514,16 @@ function CarDetailView({ car, cars, favorites, toggleFav, openCar, setView, toas
                 isCmp={false} onToggleCmp={() => {}} onOpen={openCar} />
             ))}
           </div>
+        </div>
+      )}
+
+      {fullscreen && (
+        <div className="photo-lightbox" onClick={() => setFullscreen(false)}>
+          <button className="lightbox-close" onClick={() => setFullscreen(false)} aria-label="Закрити"><X size={26} /></button>
+          <button className="lightbox-arrow left" onClick={(e) => { e.stopPropagation(); setPhotoIdx((photoIdx - 1 + car.photos.length) % car.photos.length); }} aria-label="Попереднє фото"><ChevronLeft size={26} /></button>
+          <img src={car.photos[photoIdx]} alt={`${car.brand} ${car.model}`} onClick={(e) => e.stopPropagation()} />
+          <button className="lightbox-arrow right" onClick={(e) => { e.stopPropagation(); setPhotoIdx((photoIdx + 1) % car.photos.length); }} aria-label="Наступне фото"><ChevronRight size={26} /></button>
+          <div className="lightbox-counter">{photoIdx + 1} / {car.photos.length}</div>
         </div>
       )}
     </div>
@@ -1019,12 +1043,36 @@ function AuthView({ setView, toast }) {
     }
   };
 
+  const oauthLogin = async (provider) => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (err) {
+      toast(err.message || "Не вдалося увійти");
+    }
+  };
+
   return (
     <div className="page-simple narrow">
       <h2>{mode === "login" ? "Вхід" : "Реєстрація"}</h2>
       <p className="intro-text">
         {mode === "login" ? "Увійдіть, щоб керувати оголошеннями." : "Створіть акаунт. За замовчуванням новий акаунт не має доступу до публікації — доступ надає адміністратор."}
       </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 420, marginBottom: 18 }}>
+        <button type="button" className="oauth-btn" onClick={() => oauthLogin("google")}>
+          Продовжити через Google
+        </button>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, maxWidth: 420, margin: "0 0 18px", color: "var(--muted)", fontSize: 13 }}>
+        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        або
+        <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+      </div>
+
       <form className="form-section" onSubmit={submit} style={{ maxWidth: 420 }}>
         <div style={{ marginBottom: 14 }}>
           <label>Email</label>
@@ -1358,6 +1406,8 @@ export default function AvtoMixApp() {
         .btn.ghost { background: transparent; color: var(--header-text); border-color: transparent; }
         .btn.ghost:hover { opacity: 0.75; }
         .btn.lg { padding: 13px 24px; font-size: 15px; }
+        .oauth-btn { width: 100%; padding: 13px 20px; font-size: 15px; font-weight: 600; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+        .oauth-btn:hover { background: var(--bg-alt); }
         .btn.block { width: 100%; justify-content: center; }
         .btn.tiktok { background: var(--bg-alt); border-color: var(--accent); color: var(--accent); }
         .link-btn { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 0; }
@@ -1503,6 +1553,17 @@ export default function AvtoMixApp() {
         .gallery-thumbs { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; }
         .thumb { width: 76px; height: 56px; object-fit: cover; border-radius: 6px; cursor: pointer; opacity: 0.55; flex-shrink: 0; border: 2px solid transparent; }
         .thumb.active { opacity: 1; border-color: var(--accent); }
+        .gallery-expand-btn { position: absolute; bottom: 14px; right: 14px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .photo-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .photo-lightbox img { max-width: 90vw; max-height: 88vh; object-fit: contain; cursor: default; }
+        .lightbox-close { position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .lightbox-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .lightbox-arrow.left { left: 18px; } .lightbox-arrow.right { right: 18px; }
+        .lightbox-counter { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); color: #fff; background: rgba(255,255,255,0.12); padding: 5px 14px; border-radius: 20px; font-size: 13px; }
+        @media (max-width: 600px) {
+          .lightbox-arrow { width: 38px; height: 38px; }
+          .lightbox-arrow.left { left: 6px; } .lightbox-arrow.right { right: 6px; }
+        }
         .detail-section { margin-top: 26px; }
         .detail-section h3 { font-size: 17px; margin-bottom: 12px; }
         .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
