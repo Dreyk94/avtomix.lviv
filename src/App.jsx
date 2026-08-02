@@ -8,20 +8,69 @@ import {
   ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock, Maximize2
 } from "lucide-react";
 
-const BRANDS = ["Audi", "BMW", "Mercedes-Benz", "Volkswagen", "Toyota", "Skoda", "Renault", "Nissan", "Honda"];
+const BRANDS = [
+  "Acura", "Alfa Romeo", "Audi", "Bentley", "BMW", "Buick", "Cadillac", "Chevrolet", "Chrysler",
+  "Citroen", "Dacia", "Dodge", "Fiat", "Ford", "Genesis", "GMC", "Honda", "Hyundai", "Infiniti",
+  "Jaguar", "Jeep", "Kia", "Lada", "Lancia", "Land Rover", "Lexus", "Lincoln", "Mazda",
+  "Mercedes-Benz", "Mini", "Mitsubishi", "Nissan", "Opel", "Peugeot", "Porsche", "Renault",
+  "Rolls-Royce", "Saab", "Seat", "Skoda", "Smart", "Subaru", "Suzuki", "Tesla", "Toyota",
+  "Volkswagen", "Volvo"
+];
 const MODELS_BY_BRAND = {
-  "Audi": ["Q5", "A4", "A6"], "BMW": ["3 Series", "X5", "5 Series"],
-  "Mercedes-Benz": ["C-Class", "GLC", "E-Class"], "Volkswagen": ["Passat", "Tiguan", "Golf"],
-  "Toyota": ["Camry", "RAV4", "Corolla"], "Skoda": ["Octavia", "Superb", "Kodiaq"],
-  "Renault": ["Megane", "Duster", "Kadjar"], "Nissan": ["Qashqai", "X-Trail", "Leaf"],
-  "Honda": ["CR-V", "Civic", "Accord"]
+  "Acura": ["ILX", "TLX", "RDX", "MDX", "RLX", "NSX", "Integra"],
+  "Alfa Romeo": ["Giulia", "Stelvio", "Giulietta", "4C", "Tonale", "MiTo"],
+  "Audi": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "TT", "R8", "e-tron"],
+  "Bentley": ["Continental", "Flying Spur", "Bentayga", "Mulsanne"],
+  "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4", "i3", "i4", "iX"],
+  "Buick": ["Encore", "Enclave", "Envision", "LaCrosse", "Regal"],
+  "Cadillac": ["ATS", "CTS", "XT4", "XT5", "XT6", "Escalade", "CT4", "CT5"],
+  "Chevrolet": ["Aveo", "Cruze", "Malibu", "Impala", "Camaro", "Corvette", "Equinox", "Traverse", "Tahoe", "Suburban", "Silverado", "Spark", "Trax"],
+  "Chrysler": ["300", "Pacifica", "Voyager"],
+  "Citroen": ["C3", "C4", "C5", "C5 Aircross", "Berlingo", "Jumpy"],
+  "Dacia": ["Logan", "Sandero", "Duster", "Dokker", "Lodgy"],
+  "Dodge": ["Charger", "Challenger", "Durango", "Journey", "Grand Caravan"],
+  "Fiat": ["500", "Panda", "Tipo", "Punto", "500X", "Doblo"],
+  "Ford": ["Fiesta", "Focus", "Mondeo", "Mustang", "Kuga", "Escape", "Explorer", "Edge", "EcoSport", "Ranger", "F-150", "Transit", "Puma"],
+  "Genesis": ["G70", "G80", "G90", "GV70", "GV80"],
+  "GMC": ["Terrain", "Acadia", "Yukon", "Sierra", "Canyon"],
+  "Honda": ["Civic", "Accord", "CR-V", "HR-V", "Pilot", "Fit", "Jazz", "Insight", "Odyssey"],
+  "Hyundai": ["i10", "i20", "i30", "Accent", "Elantra", "Sonata", "Tucson", "Santa Fe", "Kona", "Creta", "Palisade", "Ioniq"],
+  "Infiniti": ["Q50", "Q60", "Q70", "QX50", "QX60", "QX70", "QX80"],
+  "Jaguar": ["XE", "XF", "XJ", "F-Type", "E-Pace", "F-Pace", "I-Pace"],
+  "Jeep": ["Renegade", "Compass", "Cherokee", "Grand Cherokee", "Wrangler", "Gladiator"],
+  "Kia": ["Picanto", "Rio", "Ceed", "Cerato/Forte", "Optima/K5", "Sportage", "Sorento", "Soul", "Stinger", "Niro", "Telluride"],
+  "Lada": ["Granta", "Vesta", "Niva", "XRAY", "Kalina", "Priora"],
+  "Lancia": ["Ypsilon", "Delta", "Musa"],
+  "Land Rover": ["Range Rover", "Range Rover Sport", "Range Rover Evoque", "Range Rover Velar", "Discovery", "Discovery Sport", "Defender"],
+  "Lexus": ["IS", "ES", "GS", "LS", "UX", "NX", "RX", "GX", "LX", "RC", "LC"],
+  "Lincoln": ["MKZ", "Continental", "Corsair", "Nautilus", "Aviator", "Navigator"],
+  "Mazda": ["2", "3", "6", "CX-3", "CX-5", "CX-9", "CX-30", "MX-5"],
+  "Mercedes-Benz": ["A-Class", "B-Class", "C-Class", "E-Class", "S-Class", "CLA", "CLS", "GLA", "GLB", "GLC", "GLE", "GLS", "G-Class", "Vito", "Sprinter"],
+  "Mini": ["Cooper", "Clubman", "Countryman", "Paceman"],
+  "Mitsubishi": ["Lancer", "Outlander", "ASX", "Eclipse Cross", "Pajero", "L200"],
+  "Nissan": ["Micra", "Note", "Sentra/Sylphy", "Altima", "Maxima", "Qashqai", "X-Trail", "Murano", "Pathfinder", "Juke", "Leaf", "Navara"],
+  "Opel": ["Corsa", "Astra", "Insignia", "Mokka", "Crossland", "Grandland", "Zafira", "Vectra"],
+  "Peugeot": ["208", "308", "508", "2008", "3008", "5008", "Partner"],
+  "Porsche": ["911", "718 Cayman/Boxster", "Panamera", "Macan", "Cayenne", "Taycan"],
+  "Renault": ["Clio", "Megane", "Talisman", "Captur", "Kadjar", "Koleos", "Duster", "Sandero", "Trafic"],
+  "Rolls-Royce": ["Phantom", "Ghost", "Wraith", "Cullinan"],
+  "Saab": ["9-3", "9-5"],
+  "Seat": ["Ibiza", "Leon", "Toledo", "Arona", "Ateca", "Tarraco"],
+  "Skoda": ["Fabia", "Rapid", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq", "Scala"],
+  "Smart": ["Fortwo", "Forfour"],
+  "Subaru": ["Impreza", "Legacy", "Outback", "Forester", "XV/Crosstrek", "WRX", "BRZ"],
+  "Suzuki": ["Swift", "Baleno", "Vitara", "SX4", "Jimny", "S-Cross"],
+  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
+  "Toyota": ["Yaris", "Corolla", "Camry", "Avalon", "RAV4", "Highlander", "Land Cruiser", "Prado", "C-HR", "Prius", "Hilux", "Fortuner"],
+  "Volkswagen": ["Polo", "Golf", "Jetta", "Passat", "Arteon", "Tiguan", "Touareg", "T-Roc", "T-Cross", "Touran", "Sharan", "ID.3", "ID.4"],
+  "Volvo": ["S60", "S90", "V40", "V60", "V90", "XC40", "XC60", "XC90"]
 };
 const CITIES = ["Львів", "Київ", "Одеса", "Харків", "Тернопіль", "Івано-Франківськ", "Луцьк", "Рівне", "Дрогобич"];
 const FUEL_TYPES = ["бензин", "дизель", "газ", "гібрид", "електро"];
 const TRANSMISSIONS = ["механіка", "автомат", "робот", "варіатор"];
 const DRIVES = ["передній", "задній", "повний"];
 const BODY_TYPES = ["седан", "хетчбек", "універсал", "позашляховик", "купе", "мінівен"];
-const COLORS = ["чорний", "білий", "сірий", "сірібний", "синій", "червоний", "коричневий"];
+const COLORS = ["чорний", "білий", "сірий", "сірібний", "синій", "червоний", "коричневий", "зелений", "жовтий", "оранжевий", "бежевий", "бордовий", "фіолетовий"];
 
 function makePhotos(seed, n) {
   return Array.from({ length: n }, (_, i) => `https://picsum.photos/seed/${seed}-${i}/900/620`);
@@ -107,29 +156,12 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <button className={view === "catalog" ? "nav-link active" : "nav-link"} onClick={() => setView("catalog")}>Авто в наявності</button>
           <button className={view === "selection" ? "nav-link active" : "nav-link"} onClick={() => setView("selection")}>🔍 Підбір авто</button>
           <button className={view === "tradein" ? "nav-link active" : "nav-link"} onClick={() => setView("tradein")}>Trade-IN</button>
+          <button className={view === "insurance" ? "nav-link active" : "nav-link"} onClick={() => setView("insurance")}>Страхування</button>
           <button className={view === "contacts" ? "nav-link active" : "nav-link"} onClick={() => setView("contacts")}>Контакти</button>
           <button className={view === "vin" ? "nav-link active" : "nav-link"} onClick={() => setView("vin")}>VIN-перевірка</button>
         </nav>
 
-        <div className="search-wrap desktop-only">
-          <Search size={16} className="search-ic" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Марка, модель або місто..." />
-        </div>
-
         <div className="header-actions">
-          <button className="icon-btn header-icon" onClick={() => setView("favorites")} aria-label="Обране">
-            <Heart size={17} />
-            {favCount > 0 && <span className="dot-badge">{favCount}</span>}
-          </button>
-          <button className="icon-btn header-icon" onClick={() => setView("compare")} aria-label="Порівняння">
-            <GitCompareArrows size={17} />
-            {cmpCount > 0 && <span className="dot-badge">{cmpCount}</span>}
-          </button>
-          {isAdmin && (
-            <button className="icon-btn header-icon desktop-only" onClick={() => setView("admin")} aria-label="Адмін-панель">
-              <LayoutDashboard size={17} />
-            </button>
-          )}
           <button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label="Перемкнути тему">
             {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
           </button>
@@ -154,6 +186,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <button className="nav-link" onClick={() => { setView("catalog"); setMenuOpen(false); }}>Авто в наявності</button>
           <button className="nav-link" onClick={() => { setView("selection"); setMenuOpen(false); }}>🔍 Підбір авто</button>
           <button className="nav-link" onClick={() => { setView("tradein"); setMenuOpen(false); }}>Trade-IN</button>
+          <button className="nav-link" onClick={() => { setView("insurance"); setMenuOpen(false); }}>Страхування</button>
           <button className="nav-link" onClick={() => { setView("contacts"); setMenuOpen(false); }}>Контакти</button>
           <button className="nav-link" onClick={() => { setView("vin"); setMenuOpen(false); }}>VIN-перевірка</button>
           <div className="mobile-menu-sep" />
@@ -717,7 +750,13 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
         <div className="form-section">
           <h4>Основна інформація</h4>
           <div className="form-grid">
-            <div><label>Марка *</label><input list="brands" value={form.brand} onChange={(e) => { set("brand", e.target.value); set("model", ""); }} placeholder="Наприклад, Audi" /></div>
+            <div>
+              <label>Марка *</label>
+              <select value={form.brand} onChange={(e) => { set("brand", e.target.value); set("model", ""); }}>
+                <option value="">Оберіть марку</option>
+                {BRANDS.map((b) => <option key={b}>{b}</option>)}
+              </select>
+            </div>
             <div>
               <label>Модель</label>
               <select value={form.model} onChange={(e) => set("model", e.target.value)}>
@@ -730,7 +769,6 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
             <div><label>VIN-код</label><input value={form.vin} onChange={(e) => set("vin", e.target.value)} placeholder="Необов'язково" /></div>
             <div><label>Тип кузова</label><select value={form.body} onChange={(e) => set("body", e.target.value)}>{BODY_TYPES.map((b) => <option key={b}>{b}</option>)}</select></div>
           </div>
-          <datalist id="brands">{BRANDS.map((b) => <option key={b} value={b} />)}</datalist>
         </div>
 
         <div className="form-section">
@@ -741,7 +779,7 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
             <div><label>Тип пального</label><select value={form.fuel} onChange={(e) => set("fuel", e.target.value)}>{FUEL_TYPES.map((f) => <option key={f}>{f}</option>)}</select></div>
             <div><label>Коробка передач</label><select value={form.trans} onChange={(e) => set("trans", e.target.value)}>{TRANSMISSIONS.map((t) => <option key={t}>{t}</option>)}</select></div>
             <div><label>Привід</label><select value={form.drive} onChange={(e) => set("drive", e.target.value)}>{DRIVES.map((d) => <option key={d}>{d}</option>)}</select></div>
-            <div><label>Колір</label><input value={form.color} onChange={(e) => set("color", e.target.value)} placeholder="Чорний" /></div>
+            <div><label>Колір</label><select value={form.color} onChange={(e) => set("color", e.target.value)}><option value="">Оберіть колір</option>{COLORS.map((c) => <option key={c}>{c}</option>)}</select></div>
             <div><label>Пробіг, км</label><input type="number" value={form.mileage} onChange={(e) => set("mileage", e.target.value)} placeholder="84000" /></div>
             <div><label>Кількість власників</label><input type="number" value={form.owners} onChange={(e) => set("owners", e.target.value)} placeholder="1" /></div>
           </div>
@@ -840,6 +878,114 @@ function SelectionRequestView({ toast }) {
           {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилаємо...</> : "Надіслати заявку"}
         </button>
       </form>
+    </div>
+  );
+}
+
+const INSURANCE_TYPES = [
+  {
+    id: "oscpv",
+    title: "ОСЦПВ (Автоцивілка)",
+    tag: "Обов'язково",
+    icon: ShieldCheck,
+    desc: "Обов'язковий поліс цивільної відповідальності. Покриває шкоду, завдану іншим людям і їхньому майну, якщо винуватець ДТП — ви. Без нього керувати авто в Україні заборонено законом."
+  },
+  {
+    id: "green-card",
+    title: "Зелена карта",
+    tag: "Для поїздок за кордон",
+    icon: MapPin,
+    desc: "Міжнародний аналог автоцивілки. Обов'язкова для в'їзду в більшість країн Європи — без неї на кордоні можуть не пропустити або оштрафувати."
+  },
+  {
+    id: "kasko",
+    title: "КАСКО",
+    tag: "Добровільно",
+    icon: ShieldCheck,
+    desc: "Повний захист власного авто: ДТП, викрадення, пожежа, стихійне лихо, падіння предметів. Відшкодовує ремонт або вартість авто незалежно від того, хто винен у ДТП."
+  },
+  {
+    id: "dcv",
+    title: "ДЦВ",
+    tag: "Добровільно",
+    icon: ShieldCheck,
+    desc: "Добровільне страхування цивільної відповідальності понад ліміти ОСЦПВ — вищі суми покриття для серйозних випадків."
+  },
+  {
+    id: "accident",
+    title: "Від нещасного випадку",
+    tag: "Добровільно",
+    icon: User,
+    desc: "Страхування водія та пасажирів на випадок травм або інших наслідків ДТП для здоров'я."
+  }
+];
+
+function InsuranceView({ toast }) {
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState({ name: "", phone: "", comment: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.phone.trim()) { toast("Вкажіть ім'я та телефон"); return; }
+    setSubmitting(true);
+    const typeTitle = INSURANCE_TYPES.find((t) => t.id === selected)?.title || "Не вказано";
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, comment: `Вид страхування: ${typeTitle}. ${form.comment || ""}`.trim(), source: "Страхування" })
+      });
+      if (!res.ok) throw new Error("request failed");
+      toast("Заявку надіслано! Менеджер звʼяжеться з вами найближчим часом");
+      setForm({ name: "", phone: "", comment: "" });
+      setSelected(null);
+    } catch (err) {
+      toast("Не вдалося надіслати заявку. Зателефонуйте нам напряму");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="page-simple">
+      <h2>Страхування авто</h2>
+      <p className="intro-text">Оформимо потрібний поліс без черг і зайвої писанини — обирайте вид страхування, залишайте заявку, і наш партнер-страховик звʼяжеться з вами.</p>
+
+      <div className="insurance-grid">
+        {INSURANCE_TYPES.map((t) => {
+          const Icon = t.icon;
+          return (
+            <div key={t.id} className={selected === t.id ? "insurance-card active" : "insurance-card"}>
+              <div className="insurance-card-tag">{t.tag}</div>
+              <div className="insurance-card-icon"><Icon size={22} /></div>
+              <h4>{t.title}</h4>
+              <p>{t.desc}</p>
+              <button className="btn primary" style={{ width: "100%" }} onClick={() => setSelected(t.id)}>
+                Отримати
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {selected && (
+        <form className="form-section" onSubmit={submit} style={{ maxWidth: 480, margin: "28px auto 0" }}>
+          <h4>Заявка: {INSURANCE_TYPES.find((t) => t.id === selected)?.title}</h4>
+          <div className="form-grid">
+            <div><label>Ім'я *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Ваше ім'я" /></div>
+            <div><label>Телефон *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" /></div>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <label>Коментар</label>
+            <textarea rows={3} value={form.comment} onChange={(e) => set("comment", e.target.value)} placeholder="Марка/модель авто, коли потрібен поліс тощо" />
+          </div>
+          <button className="btn primary lg" type="submit" disabled={submitting} style={{ width: "100%", marginTop: 14 }}>
+            {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилаємо...</> : "Надіслати заявку"}
+          </button>
+        </form>
+      )}
     </div>
   );
 }
@@ -979,6 +1125,20 @@ function VinCheckView({ toast }) {
           {loading ? <><Loader2 size={16} className="spin-ic" /> Перевіряємо...</> : "Перевірити"}
         </button>
       </form>
+
+      <div className="bidfax-highlight">
+        <div className="bidfax-highlight-text">
+          <h4><ShieldCheck size={16} style={{ verticalAlign: -2, marginRight: 6 }} />Фото пошкоджень і аукціонна історія</h4>
+          <p>За цим VIN-кодом на bidfax.info можна безкоштовно побачити реальні фото авто з аукціону (Copart / IAAI), статус Salvage/Clean, дату та ціну продажу.</p>
+        </div>
+        <a
+          className="btn primary lg bidfax-highlight-btn"
+          href={vin.trim().length === 17 ? `https://bidfax.info/?s=${encodeURIComponent(vin.trim().toUpperCase())}` : "https://bidfax.info/"}
+          target="_blank" rel="noreferrer"
+        >
+          <ExternalLink size={16} /> Перевірити на bidfax.info
+        </a>
+      </div>
 
       {error && (
         <div className="vin-error"><AlertTriangle size={16} /> {error}</div>
@@ -1602,6 +1762,37 @@ export default function AvtoMixApp() {
         .intro-text { color: var(--text-muted); font-size: 14.5px; margin-bottom: 22px; max-width: 620px; line-height: 1.6; }
         .vin-form { display: flex; gap: 10px; flex-wrap: wrap; }
         .vin-input { flex: 1; min-width: 220px; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
+        .bidfax-highlight { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+        .insurance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-top: 24px; }
+        .insurance-card { position: relative; border: 1px solid var(--border); border-radius: 14px; padding: 22px 18px 18px; background: var(--surface); display: flex; flex-direction: column; gap: 8px; }
+        .insurance-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+        .insurance-card-tag { position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--accent); }
+        .insurance-card-icon { width: 44px; height: 44px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+        .insurance-card h4 { margin: 0; font-size: 17px; }
+        .insurance-card p { margin: 0 0 10px; font-size: 13px; color: var(--text-muted); line-height: 1.5; flex: 1; }
+        .insurance-banner { position: relative; overflow: hidden; border-radius: 16px; margin: 24px 0; padding: 28px 26px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; background: linear-gradient(120deg, #0f2e22, #163f2c 55%, #1f5c3a); color: #fff; }
+        .insurance-banner::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 85% 20%, rgba(255,255,255,0.12), transparent 60%); pointer-events: none; }
+        .insurance-banner-icon { width: 54px; height: 54px; border-radius: 14px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .insurance-banner-text { flex: 1; min-width: 240px; position: relative; }
+        .insurance-banner-text .tag { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.75; font-weight: 700; }
+        .insurance-banner-text h3 { margin: 4px 0 6px; font-size: 22px; }
+        .insurance-banner-text p { margin: 0; font-size: 14px; opacity: 0.85; max-width: 480px; }
+        .insurance-banner-actions { display: flex; gap: 10px; flex-wrap: wrap; position: relative; }
+        .insurance-banner-actions .btn.ghost-light { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); }
+        .insurance-banner-actions .btn.ghost-light:hover { background: rgba(255,255,255,0.18); }
+        @media (max-width: 640px) {
+          .insurance-banner { padding: 22px 18px; }
+          .insurance-banner-actions { width: 100%; }
+          .insurance-banner-actions .btn { flex: 1; justify-content: center; }
+        }
+        .bidfax-highlight-text { flex: 1; min-width: 220px; }
+        .bidfax-highlight-text h4 { margin: 0 0 6px; font-size: 15px; }
+        .bidfax-highlight-text p { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+        .bidfax-highlight-btn { white-space: nowrap; }
+        @media (max-width: 560px) {
+          .bidfax-highlight { flex-direction: column; align-items: stretch; }
+          .bidfax-highlight-btn { width: 100%; justify-content: center; }
+        }
         .vin-error { display: flex; align-items: center; gap: 8px; color: var(--accent); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 13.5px; }
         .vin-history-cta { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
         .vin-history-cta p { color: var(--text-muted); font-size: 13px; margin-bottom: 10px; }
@@ -1675,6 +1866,20 @@ export default function AvtoMixApp() {
       {view === "home" && (
         <>
           <HeroBanner banner={banner} setView={setView} />
+          <div className="page-simple" style={{ paddingBottom: 0 }}>
+            <div className="insurance-banner">
+              <div className="insurance-banner-icon"><ShieldCheck size={26} color="#fff" /></div>
+              <div className="insurance-banner-text">
+                <span className="tag">Партнерська пропозиція</span>
+                <h3>Застрахуй авто, поки шукаєш нове</h3>
+                <p>Автоцивілка, КАСКО чи Зелена карта для виїзду за кордон — оформимо поліс за кілька хвилин, без відвідування офісу.</p>
+              </div>
+              <div className="insurance-banner-actions">
+                <button className="btn ghost-light" onClick={() => setView("insurance")}>Переглянути умови</button>
+                <button className="btn primary" onClick={() => setView("insurance")}>Отримати поліс</button>
+              </div>
+            </div>
+          </div>
           <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
             compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen} />
         </>
@@ -1689,6 +1894,8 @@ export default function AvtoMixApp() {
       {view === "selection" && <SelectionRequestView toast={showToast} />}
 
       {view === "tradein" && <TradeInView toast={showToast} />}
+
+      {view === "insurance" && <InsuranceView toast={showToast} />}
 
       {view === "contacts" && <ContactsView social={social} toast={showToast} />}
 
