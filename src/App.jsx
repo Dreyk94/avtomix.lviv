@@ -222,8 +222,8 @@ function HeroBanner({ banner, setView }) {
           <h1 className="hero-title">{slide.title}</h1>
           <p className="hero-sub">{slide.subtitle}</p>
           <div className="hero-actions">
-            <button className="btn primary lg" onClick={() => setView("home")}>Переглянути каталог</button>
-            <button className="btn outline lg" onClick={() => setView("submit")}>Подати оголошення</button>
+            <button className="btn primary lg" onClick={() => setView(slide.primaryView || "home")}>{slide.primaryLabel || "Переглянути каталог"}</button>
+            <button className="btn outline lg" onClick={() => setView(slide.secondaryView || "submit")}>{slide.secondaryLabel || "Подати оголошення"}</button>
           </div>
         </div>
       </div>
@@ -1391,7 +1391,8 @@ export default function AvtoMixApp() {
     slides: [
       { image: "https://picsum.photos/seed/avtomix-hero1/1600/800", title: "Avto Mix", subtitle: "Купуйте та продавайте автомобілі легко" },
       { image: "https://picsum.photos/seed/avtomix-hero2/1600/800", title: "Перевірені автомобілі", subtitle: "Детальні характеристики та реальні фото кожного авто" },
-      { image: "https://picsum.photos/seed/avtomix-hero3/1600/800", title: "Подайте оголошення за хвилини", subtitle: "До 30 фото, зручна форма, публікація після модерації" }
+      { image: "/insurance-banner.svg", title: "Застрахуй авто, поки шукаєш нове", subtitle: "Автоцивілка, КАСКО чи Зелена карта для виїзду за кордон — оформимо поліс за кілька хвилин, без відвідування офісу",
+        primaryLabel: "Отримати поліс", primaryView: "insurance", secondaryLabel: "Переглянути умови", secondaryView: "insurance" }
     ]
   });
 
@@ -1866,20 +1867,6 @@ export default function AvtoMixApp() {
       {view === "home" && (
         <>
           <HeroBanner banner={banner} setView={setView} />
-          <div className="page-simple" style={{ paddingBottom: 0 }}>
-            <div className="insurance-banner">
-              <div className="insurance-banner-icon"><ShieldCheck size={26} color="#fff" /></div>
-              <div className="insurance-banner-text">
-                <span className="tag">Партнерська пропозиція</span>
-                <h3>Застрахуй авто, поки шукаєш нове</h3>
-                <p>Автоцивілка, КАСКО чи Зелена карта для виїзду за кордон — оформимо поліс за кілька хвилин, без відвідування офісу.</p>
-              </div>
-              <div className="insurance-banner-actions">
-                <button className="btn ghost-light" onClick={() => setView("insurance")}>Переглянути умови</button>
-                <button className="btn primary" onClick={() => setView("insurance")}>Отримати поліс</button>
-              </div>
-            </div>
-          </div>
           <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
             compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen} />
         </>
