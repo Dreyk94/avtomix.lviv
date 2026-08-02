@@ -215,10 +215,10 @@ function HeroBanner({ banner, setView }) {
   const slide = banner.slides[idx];
   return (
     <section className="hero">
-      <div className="hero-slide" style={{ backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.18)), url(${slide.image})` }}>
+      <div className="hero-slide" style={{ backgroundImage: `${slide.overlay || "linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.18))"}, url(${slide.image})` }}>
         <div className="hero-beam" aria-hidden="true" />
         <div className="hero-content">
-          <p className="hero-eyebrow">AVTOMIX · перевірені авто з усієї України</p>
+          {!slide.hideEyebrow && <p className="hero-eyebrow">AVTOMIX · перевірені авто з усієї України</p>}
           <h1 className="hero-title">{slide.title}</h1>
           <p className="hero-sub">{slide.subtitle}</p>
           <div className="hero-actions">
@@ -898,25 +898,11 @@ const INSURANCE_TYPES = [
     desc: "Міжнародний аналог автоцивілки. Обов'язкова для в'їзду в більшість країн Європи — без неї на кордоні можуть не пропустити або оштрафувати."
   },
   {
-    id: "kasko",
-    title: "КАСКО",
-    tag: "Добровільно",
-    icon: ShieldCheck,
-    desc: "Повний захист власного авто: ДТП, викрадення, пожежа, стихійне лихо, падіння предметів. Відшкодовує ремонт або вартість авто незалежно від того, хто винен у ДТП."
-  },
-  {
     id: "dcv",
     title: "ДЦВ",
     tag: "Добровільно",
     icon: ShieldCheck,
     desc: "Добровільне страхування цивільної відповідальності понад ліміти ОСЦПВ — вищі суми покриття для серйозних випадків."
-  },
-  {
-    id: "accident",
-    title: "Від нещасного випадку",
-    tag: "Добровільно",
-    icon: User,
-    desc: "Страхування водія та пасажирів на випадок травм або інших наслідків ДТП для здоров'я."
   }
 ];
 
@@ -1391,7 +1377,8 @@ export default function AvtoMixApp() {
     slides: [
       { image: "https://picsum.photos/seed/avtomix-hero1/1600/800", title: "Avto Mix", subtitle: "Купуйте та продавайте автомобілі легко" },
       { image: "https://picsum.photos/seed/avtomix-hero2/1600/800", title: "Перевірені автомобілі", subtitle: "Детальні характеристики та реальні фото кожного авто" },
-      { image: "/insurance-banner.svg", title: "Застрахуй авто, поки шукаєш нове", subtitle: "Автоцивілка, КАСКО чи Зелена карта для виїзду за кордон — оформимо поліс за кілька хвилин, без відвідування офісу",
+      { image: "/insurance-banner.png", title: "Всі види автострахування", subtitle: "Автоцивілка, Зелена карта, ДЦВ — оформимо поліс за кілька хвилин, без відвідування офісу",
+        hideEyebrow: true,
         primaryLabel: "Отримати поліс", primaryView: "insurance", secondaryLabel: "Переглянути умови", secondaryView: "insurance" }
     ]
   });
