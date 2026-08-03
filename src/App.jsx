@@ -5,7 +5,9 @@ import {
   Sun, Moon, ChevronLeft, ChevronRight, SlidersHorizontal, Eye, Trash2,
   Pencil, Check, Plus, Upload, MapPin, GitCompareArrows, LayoutDashboard,
   Gauge, Fuel, Cog, Palette, User, ImageIcon, ArrowUpDown, LayoutGrid, List, Loader2,
-  ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock, Maximize2
+  ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock, Maximize2,
+  Award, RefreshCw, Umbrella, KeyRound, Globe, HeartPulse, ShieldAlert, Car, FileText, Zap, ChevronDown,
+  Sparkles, Download, CheckCircle2, XCircle, Fingerprint, Clock, Navigation, ScanLine, Camera
 } from "lucide-react";
 
 const BRANDS = [
@@ -206,6 +208,56 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
   );
 }
 
+function FeaturesRow({ setView }) {
+  const items = [
+    { icon: Award, title: "500+", text: "проданих авто", sub: "Довіра клієнтів, підтверджена результатом." },
+    { icon: ShieldCheck, title: "VIN-перевірка", sub: "Перевіряйте історію автомобіля перед покупкою.", view: "vin" },
+    { icon: RefreshCw, title: "Trade-In", sub: "Обміняйте старий автомобіль на новий.", view: "tradein" },
+    { icon: Umbrella, title: "Страхування авто", sub: "Оформлення ОСЦПВ, Зеленої карти та ДЦВ.", view: "insurance" },
+    { icon: MapPin, title: "Львів та область", sub: "Автомобілі від власників і автосалонів у Львові." }
+  ];
+  return (
+    <div className="page-simple features-row-wrap">
+      <div className="features-row">
+        {items.map((it) => {
+          const Icon = it.icon;
+          return (
+            <div key={it.title} className={it.view ? "feature-card clickable" : "feature-card"} onClick={it.view ? () => setView(it.view) : undefined}>
+              <div className="feature-icon"><Icon size={20} /></div>
+              <div>
+                <h4>{it.title}</h4>
+                {it.text && <span className="feature-tag">{it.text}</span>}
+                <p>{it.sub}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PromoBanners({ setView }) {
+  return (
+    <div className="page-simple promo-banners-wrap">
+      <div className="promo-banners">
+        <div className="promo-card promo-dark">
+          <div className="promo-icon"><KeyRound size={30} /></div>
+          <h3>Хочете продати авто?</h3>
+          <p>Розмістіть оголошення та знайдіть покупця швидше.</p>
+          <button className="btn primary lg" onClick={() => setView("submit")}><Plus size={16} /> Подати оголошення</button>
+        </div>
+        <div className="promo-card promo-accent">
+          <div className="promo-icon"><Search size={30} /></div>
+          <h3>Потрібна допомога з підбором авто?</h3>
+          <p>Наші експерти допоможуть підібрати найкращий варіант.</p>
+          <button className="btn outline lg" onClick={() => setView("selection")}>Підібрати авто</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HeroBanner({ banner, setView }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
@@ -215,10 +267,18 @@ function HeroBanner({ banner, setView }) {
   const slide = banner.slides[idx];
   return (
     <section className="hero">
-      <div className="hero-slide" style={{ backgroundImage: `${slide.overlay || "linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.18))"}, url(${slide.image})` }}>
+      <div className="hero-slide">
+        <div key={idx} className="hero-bg" style={{
+          backgroundImage: `url(${slide.image})`,
+          backgroundSize: slide.bgSize || "cover",
+          backgroundPosition: slide.bgPosition || "center",
+          backgroundRepeat: "no-repeat",
+          backgroundColor: slide.bgColor || undefined
+        }} />
+        <div className="hero-overlay" style={{ backgroundImage: slide.overlay || "linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.18))" }} />
         <div className="hero-beam" aria-hidden="true" />
         <div className="hero-content">
-          {!slide.hideEyebrow && <p className="hero-eyebrow">AVTOMIX · перевірені авто з усієї України</p>}
+          {!slide.hideEyebrow && <p className="hero-eyebrow">{slide.eyebrow || "AVTOMIX · перевірені авто з усієї України"}</p>}
           <h1 className="hero-title">{slide.title}</h1>
           <p className="hero-sub">{slide.subtitle}</p>
           <div className="hero-actions">
@@ -262,6 +322,7 @@ function CarCard({ car, isFav, onToggleFav, isCmp, onToggleCmp, onOpen, layout =
         <div className="car-card-bottom">
           <span className="year">{car.year} р.</span>
           <span className="city"><MapPin size={13} /> {car.city}</span>
+          {car.owners === 1 && <span className="owner-tag">Перший власник</span>}
         </div>
         <label className="cmp-check" onClick={(e) => e.stopPropagation()}>
           <input type="checkbox" checked={isCmp} onChange={() => onToggleCmp(car.id)} />
@@ -885,25 +946,52 @@ function SelectionRequestView({ toast }) {
 const INSURANCE_TYPES = [
   {
     id: "oscpv",
-    title: "ОСЦПВ (Автоцивілка)",
-    tag: "Обов'язково",
-    icon: ShieldCheck,
+    title: "ОСЦПВ",
+    icon: Car,
+    short: "Обов'язкове страхування цивільної відповідальності водія.",
     desc: "Обов'язковий поліс цивільної відповідальності. Покриває шкоду, завдану іншим людям і їхньому майну, якщо винуватець ДТП — ви. Без нього керувати авто в Україні заборонено законом."
+  },
+  {
+    id: "kasko",
+    title: "КАСКО",
+    icon: ShieldCheck,
+    short: "Повний захист автомобіля від пошкодження, викрадення та інших ризиків.",
+    desc: "Добровільне комплексне страхування власного авто: ДТП, викрадення, пожежа, стихійне лихо. Відшкодовує ремонт або вартість авто незалежно від того, хто винен у ДТП."
   },
   {
     id: "green-card",
     title: "Зелена карта",
-    tag: "Для поїздок за кордон",
-    icon: MapPin,
+    icon: Globe,
+    short: "Страхування для подорожей автомобілем за кордон.",
     desc: "Міжнародний аналог автоцивілки. Обов'язкова для в'їзду в більшість країн Європи — без неї на кордоні можуть не пропустити або оштрафувати."
+  },
+  {
+    id: "medical",
+    title: "Медичне страхування",
+    icon: HeartPulse,
+    short: "Захист під час подорожей Україною та за кордон.",
+    desc: "Медична допомога та підтримка в будь-якій країні світу — лікарські витрати, екстрена допомога, турбота про ваше здоров'я в дорозі."
   },
   {
     id: "dcv",
     title: "ДЦВ",
-    tag: "Добровільно",
-    icon: ShieldCheck,
+    icon: ShieldAlert,
+    short: "Додатковий захист цивільної відповідальності.",
     desc: "Добровільне страхування цивільної відповідальності понад ліміти ОСЦПВ — вищі суми покриття для серйозних випадків."
   }
+];
+
+const INSURANCE_STEPS = [
+  { icon: FileText, title: "Оберіть потрібний вид страхування" },
+  { icon: User, title: "Залиште заявку" },
+  { icon: ShieldCheck, title: "Отримайте електронний страховий поліс" }
+];
+
+const INSURANCE_WHY = [
+  { icon: Zap, title: "Швидке оформлення", text: "Оформлення страховки за кілька хвилин онлайн." },
+  { icon: Award, title: "Перевірені партнери", text: "Працюємо тільки з надійними страховими компаніями." },
+  { icon: FileText, title: "Електронний поліс", text: "Отримайте поліс на email одразу після оформлення." },
+  { icon: MessageCircle, title: "Підтримка 24/7", text: "Наші менеджери завжди на зв'язку та допоможуть." }
 ];
 
 function InsuranceView({ toast }) {
@@ -911,12 +999,20 @@ function InsuranceView({ toast }) {
   const [form, setForm] = useState({ name: "", phone: "", comment: "" });
   const [submitting, setSubmitting] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const typesRef = useRef(null);
+  const formRef = useRef(null);
+
+  const scrollToTypes = () => typesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const openType = (id) => {
+    setSelected(id);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim()) { toast("Вкажіть ім'я та телефон"); return; }
     setSubmitting(true);
-    const typeTitle = INSURANCE_TYPES.find((t) => t.id === selected)?.title || "Не вказано";
+    const typeTitle = selected === "consult" ? "Консультація" : (INSURANCE_TYPES.find((t) => t.id === selected)?.title || "Не вказано");
     try {
       const res = await fetch("/api/notify", {
         method: "POST",
@@ -935,42 +1031,110 @@ function InsuranceView({ toast }) {
   };
 
   return (
-    <div className="page-simple">
-      <h2>Страхування авто</h2>
-      <p className="intro-text">Оформимо потрібний поліс без черг і зайвої писанини — обирайте вид страхування, залишайте заявку, і наш партнер-страховик звʼяжеться з вами.</p>
+    <div className="insurance-page">
+      <div className="page-simple breadcrumb-wrap">
+        <p className="breadcrumb"><span onClick={() => {}}>Головна</span> <ChevronRight size={12} /> <span>Страхування авто</span></p>
+      </div>
 
-      <div className="insurance-grid">
-        {INSURANCE_TYPES.map((t) => {
-          const Icon = t.icon;
-          return (
-            <div key={t.id} className={selected === t.id ? "insurance-card active" : "insurance-card"}>
-              <div className="insurance-card-tag">{t.tag}</div>
-              <div className="insurance-card-icon"><Icon size={22} /></div>
-              <h4>{t.title}</h4>
-              <p>{t.desc}</p>
-              <button className="btn primary" style={{ width: "100%" }} onClick={() => setSelected(t.id)}>
-                Отримати
-              </button>
+      <section className="ins-hero">
+        <div className="ins-hero-bg" style={{ backgroundImage: "url(/insurance-hero.png)" }} />
+        <div className="ins-hero-overlay" />
+        <div className="page-simple ins-hero-inner">
+          <div className="ins-hero-text">
+            <p className="hero-eyebrow">СТРАХУВАННЯ AVTOMIX</p>
+            <h1 className="ins-hero-title">Страхування автомобіля за кілька хвилин</h1>
+            <p className="ins-hero-sub">ОСЦПВ, КАСКО, Зелена карта та інші страхові продукти від перевірених партнерів.</p>
+            <div className="hero-actions">
+              <button className="btn primary lg" onClick={scrollToTypes}>Оформити страховку</button>
+              <button className="btn outline lg" onClick={() => openType("consult")}>Отримати консультацію</button>
             </div>
-          );
-        })}
+          </div>
+          <div className="ins-glass-card">
+            {INSURANCE_TYPES.map((t) => (
+              <div key={t.id} className="ins-glass-row"><Check size={16} /> {t.title}</div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="page-simple">
+        <h2 ref={typesRef} className="section-title">Що можна застрахувати</h2>
+        <div className="insurance-grid">
+          {INSURANCE_TYPES.map((t) => {
+            const Icon = t.icon;
+            return (
+              <div key={t.id} className="insurance-card">
+                <div className="insurance-card-icon"><Icon size={22} /></div>
+                <h4>{t.title}</h4>
+                <p>{t.short}</p>
+                <button className="link-btn" onClick={() => openType(t.id)}>Дізнатися більше <ChevronRight size={14} /></button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="page-simple">
+        <h2 className="section-title">Як це працює</h2>
+        <div className="ins-steps">
+          {INSURANCE_STEPS.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <React.Fragment key={s.title}>
+                <div className="ins-step">
+                  <div className="ins-step-icon"><Icon size={24} /><span className="ins-step-num">{i + 1}</span></div>
+                  <p>{s.title}</p>
+                </div>
+                {i < INSURANCE_STEPS.length - 1 && <div className="ins-step-arrow"><ChevronRight size={20} /></div>}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="page-simple">
+        <h2 className="section-title">Чому оформлюють через AvtoMix</h2>
+        <div className="ins-why-grid">
+          {INSURANCE_WHY.map((w) => {
+            const Icon = w.icon;
+            return (
+              <div key={w.title} className="ins-why-card">
+                <div className="insurance-card-icon"><Icon size={20} /></div>
+                <h4>{w.title}</h4>
+                <p>{w.text}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="page-simple">
+        <div className="ins-final-banner">
+          <div className="ins-final-text">
+            <h3>Не відкладайте безпеку</h3>
+            <p>Оформіть страховку онлайн та вирушайте в дорогу з упевненістю.</p>
+            <button className="btn primary lg" onClick={scrollToTypes}>Оформити страховку</button>
+          </div>
+        </div>
       </div>
 
       {selected && (
-        <form className="form-section" onSubmit={submit} style={{ maxWidth: 480, margin: "28px auto 0" }}>
-          <h4>Заявка: {INSURANCE_TYPES.find((t) => t.id === selected)?.title}</h4>
-          <div className="form-grid">
-            <div><label>Ім'я *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Ваше ім'я" /></div>
-            <div><label>Телефон *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" /></div>
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <label>Коментар</label>
-            <textarea rows={3} value={form.comment} onChange={(e) => set("comment", e.target.value)} placeholder="Марка/модель авто, коли потрібен поліс тощо" />
-          </div>
-          <button className="btn primary lg" type="submit" disabled={submitting} style={{ width: "100%", marginTop: 14 }}>
-            {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилаємо...</> : "Надіслати заявку"}
-          </button>
-        </form>
+        <div className="page-simple">
+          <form ref={formRef} className="form-section ins-form" onSubmit={submit} style={{ maxWidth: 480, margin: "0 auto" }}>
+            <h4>Заявка: {selected === "consult" ? "Консультація" : INSURANCE_TYPES.find((t) => t.id === selected)?.title}</h4>
+            <div className="form-grid">
+              <div><label>Ім'я *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Ваше ім'я" /></div>
+              <div><label>Телефон *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" /></div>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <label>Коментар</label>
+              <textarea rows={3} value={form.comment} onChange={(e) => set("comment", e.target.value)} placeholder="Марка/модель авто, коли потрібен поліс тощо" />
+            </div>
+            <button className="btn primary lg" type="submit" disabled={submitting} style={{ width: "100%", marginTop: 14 }}>
+              {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилаємо...</> : "Надіслати заявку"}
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );
@@ -1062,6 +1226,8 @@ function VinCheckView({ toast }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIdx, setGalleryIdx] = useState(0);
 
   const checkVin = async (e) => {
     e.preventDefault();
@@ -1094,23 +1260,158 @@ function VinCheckView({ toast }) {
     ["Виробник", result.Manufacturer], ["Кількість дверей", result.Doors]
   ].filter(([, v]) => v && v !== "Not Applicable") : [];
 
-  return (
-    <div className="page-simple narrow">
-      <h2>Перевірка авто по VIN-коду</h2>
-      <p className="intro-text">Введіть VIN-код (17 символів), щоб безкоштовно розшифрувати базові дані автомобіля — марку, модель, рік, двигун і країну складання.</p>
+  // Ілюстративні дані для прев'ю повного паспорта — НЕ реальна історія цього конкретного авто.
+  const demoPhotos = [
+    "https://picsum.photos/seed/passport-auction/900/620",
+    "https://picsum.photos/seed/passport-damage/900/620",
+    "https://picsum.photos/seed/passport-repair/900/620",
+    "https://picsum.photos/seed/passport-current/900/620"
+  ];
+  const demoChecks = [
+    { ok: true, label: "Реальний пробіг" },
+    { ok: false, label: "Було ДТП (2022)" },
+    { ok: true, label: "Не перебуває у розшуку" },
+    { ok: true, label: "Не перебуває у заставі" },
+    { ok: false, label: "2 власники" },
+    { ok: true, label: "Документи перевірені" }
+  ];
+  const demoTimeline = [
+    { year: "2019", text: "Випущено із заводу" },
+    { year: "2020", text: "Перша реєстрація" },
+    { year: "2022", text: "ДТП" },
+    { year: "2022", text: "Продаж через аукціон Copart" },
+    { year: "2023", text: "Відновлення" },
+    { year: "2024", text: "Імпорт в Україну" },
+    { year: "2025", text: "Остання реєстрація" }
+  ];
+  const demoRoute = ["🇺🇸 США", "🇵🇱 Польща", "🇺🇦 Україна"];
+  const whatWeCheck = ["VIN", "ДТП", "Фото", "Пробіг", "Реєстрації", "Власники", "Викрадення", "Арешти", "Застави", "Страхові випадки", "Історія аукціонів", "Комплектація", "Ринкова вартість"];
+  const carLabel = result ? `${result.Make || ""} ${result.Model || ""}`.trim() : "";
 
-      <form className="vin-form" onSubmit={checkVin}>
-        <input
-          value={vin}
-          onChange={(e) => setVin(e.target.value.toUpperCase())}
-          placeholder="Наприклад, WA1CNAFYXK2081186"
-          maxLength={17}
-          className="vin-input"
-        />
-        <button className="btn primary lg" type="submit" disabled={loading}>
-          {loading ? <><Loader2 size={16} className="spin-ic" /> Перевіряємо...</> : "Перевірити"}
-        </button>
-      </form>
+  return (
+    <div className="passport-page">
+      <section className="passport-hero">
+        <div className="passport-hero-inner">
+          <div className="passport-hero-left">
+            <p className="passport-eyebrow"><Fingerprint size={13} /> AVTOMIX AUTO PASSPORT</p>
+            <h1>Паспорт автомобіля AvtoMix</h1>
+            <p className="passport-sub">Дізнайтеся повну історію автомобіля ще до покупки. Один VIN — повний цифровий звіт.</p>
+            <form className="passport-form" onSubmit={checkVin}>
+              <input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} placeholder="Введіть VIN або державний номер" maxLength={17} />
+              <button className="btn primary lg" type="submit" disabled={loading}>
+                {loading ? <><Loader2 size={16} className="spin-ic" /> Перевіряємо...</> : <><Search size={16} /> Перевірити автомобіль</>}
+              </button>
+            </form>
+            <div className="passport-trust">
+              <span><CheckCircle2 size={14} /> перевірка займає до 30 секунд</span>
+              <span><CheckCircle2 size={14} /> офіційні джерела</span>
+              <span><CheckCircle2 size={14} /> фото автомобіля</span>
+            </div>
+            {error && <div className="vin-error"><AlertTriangle size={16} /> {error}</div>}
+          </div>
+          <div className="passport-hero-right">
+            {!result ? (
+              <div className="passport-preview-card">
+                <ScanLine size={34} />
+                <p>Тут з'явиться цифровий паспорт автомобіля одразу після перевірки</p>
+              </div>
+            ) : (
+              <div className="passport-score-card">
+                <img src={demoPhotos[0]} alt={carLabel} />
+                <div className="passport-score-overlay">
+                  <div className="score-ring"><span>87</span><small>/100</small></div>
+                  <div>
+                    <b>{carLabel || "Автомобіль"}</b>
+                    <p>Стан автомобіля · <span className="risk-low">Ризик низький</span></p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {result && (
+        <>
+          <div className="passport-demo-banner">
+            <Sparkles size={16} />
+            <p>Нижче — приклад повного цифрового паспорта на демонстраційних даних. Реальні дані про ДТП, аукціони і фото з'являться після підключення офіційного постачальника історії авто (наприклад bidfax.info або Carfax). Розшифровка марки, моделі й двигуна вище — реальна, з відкритої бази NHTSA.</p>
+          </div>
+
+          <section className="passport-section">
+            <h3>Загальна інформація <span className="real-tag">реальні дані</span></h3>
+            <div className="specs-grid">
+              {fields.map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}
+            </div>
+          </section>
+
+          <section className="passport-section">
+            <h3>Швидкий огляд <span className="demo-tag">приклад</span></h3>
+            <div className="quickcheck-grid">
+              {demoChecks.map((c, i) => (
+                <div key={i} className={c.ok ? "quickcheck-card ok" : "quickcheck-card warn"}>
+                  {c.ok ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+                  <span>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="passport-section">
+            <h3>Фото автомобіля <span className="demo-tag">приклад</span></h3>
+            <div className="passport-gallery">
+              {demoPhotos.map((p, i) => (
+                <img key={i} src={p} alt="" onClick={() => { setGalleryIdx(i); setGalleryOpen(true); }} />
+              ))}
+            </div>
+          </section>
+
+          <section className="passport-section">
+            <h3>Історія автомобіля <span className="demo-tag">приклад</span></h3>
+            <div className="passport-timeline">
+              {demoTimeline.map((t, i) => (
+                <div className="timeline-item" key={i}>
+                  <div className="timeline-dot" />
+                  <div className="timeline-year">{t.year}</div>
+                  <div className="timeline-text">{t.text}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="passport-section">
+            <h3>Карта переміщення <span className="demo-tag">приклад</span></h3>
+            <div className="passport-route">
+              {demoRoute.map((r, i) => (
+                <React.Fragment key={i}>
+                  <span className="route-stop">{r}</span>
+                  {i < demoRoute.length - 1 && <Navigation size={14} className="route-arrow" />}
+                </React.Fragment>
+              ))}
+            </div>
+          </section>
+
+          <section className="passport-section ai-block">
+            <div className="ai-block-icon"><Sparkles size={22} /></div>
+            <div>
+              <h3>Висновок AvtoMix AI <span className="demo-tag">приклад</span></h3>
+              <p>На основі знайдених даних автомобіль мав одну страхову подію у 2022 році. Пошкодження були локальними, критичних дефектів не виявлено. Ознак скручування пробігу немає. Документи відповідають історії реєстрацій. Загальна рекомендація — автомобіль вартий уваги, але перед покупкою бажано провести технічний огляд.</p>
+              <div className="passport-actions">
+                <button className="btn primary" onClick={() => toast("Повний PDF-звіт буде доступний після підключення офіційного постачальника даних історії авто")}><Download size={15} /> Завантажити PDF-звіт</button>
+                <button className="btn outline" onClick={() => { navigator.clipboard?.writeText(window.location.href); toast("Посилання скопійовано"); }}><Share2 size={15} /> Поділитися звітом</button>
+                <button className="btn outline" onClick={() => toast("Додано в обране")}><Heart size={15} /> Додати до обраного</button>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      <section className="passport-section">
+        <h3>Що перевіряє AvtoMix</h3>
+        <div className="whatcheck-grid">
+          {whatWeCheck.map((w) => <div key={w} className="whatcheck-item"><CheckCircle2 size={14} /> {w}</div>)}
+        </div>
+      </section>
 
       <div className="bidfax-highlight">
         <div className="bidfax-highlight-text">
@@ -1126,29 +1427,20 @@ function VinCheckView({ toast }) {
         </a>
       </div>
 
-      {error && (
-        <div className="vin-error"><AlertTriangle size={16} /> {error}</div>
-      )}
+      <p className="vin-disclaimer">Базова розшифровка виконується через відкриту базу даних NHTSA (США) і працює для більшості VIN, виданих у Північній Америці. Дані про ДТП, аукціони та фото авто bidfax.info надає окремо на своєму сайті. Розділи з позначкою «приклад» показують демонстраційні дані для ілюстрації майбутньої функції.</p>
 
-      {result && (
-        <div className="form-section" style={{ marginTop: 20 }}>
-          <h4><ShieldCheck size={15} style={{ verticalAlign: -2, marginRight: 4 }} />Розшифровка VIN</h4>
-          <div className="specs-grid">
-            {fields.map(([label, value]) => (
-              <div key={label}><span>{label}</span><b>{value}</b></div>
-            ))}
-          </div>
+      <section className="passport-cta">
+        <h3>Перевірте автомобіль до покупки</h3>
+        <p>Не ризикуйте своїми коштами. Отримайте повну історію автомобіля за кілька секунд.</p>
+        <button className="btn primary lg" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>Перевірити VIN</button>
+      </section>
 
-          <div className="vin-history-cta">
-            <p>Потрібна повна історія: аукціонні фото, ДТП, статус Salvage/Clean, пробіг по одометрах? Це вже спеціалізована база даних аукціонів США.</p>
-            <a className="btn outline" href={`https://bidfax.info/?s=${encodeURIComponent(vin.trim().toUpperCase())}`} target="_blank" rel="noreferrer">
-              <ExternalLink size={15} /> Перевірити повну історію на bidfax.info
-            </a>
-          </div>
+      {galleryOpen && (
+        <div className="lightbox" onClick={() => setGalleryOpen(false)}>
+          <img src={demoPhotos[galleryIdx]} alt="" onClick={(e) => e.stopPropagation()} />
+          <button className="lightbox-close" onClick={() => setGalleryOpen(false)}><X size={22} /></button>
         </div>
       )}
-
-      <p className="vin-disclaimer">Базова розшифровка виконується через відкриту базу даних NHTSA (США) і працює для більшості VIN, виданих у Північній Америці. Дані про ДТП, аукціони та фото авто bidfax.info надає окремо на своєму сайті.</p>
     </div>
   );
 }
@@ -1336,20 +1628,47 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
   );
 }
 
-function Footer({ social }) {
+function Footer({ social, setView }) {
   return (
     <footer className="footer">
-      <div className="footer-inner">
-        <div className="logo footer-logo"><span className="logo-word"><span className="logo-avto">Avto</span><span className="logo-mix">Mix</span></span></div>
-        <p>Купуйте та продавайте автомобілі легко — тисячі перевірених оголошень по всій Україні.</p>
-        <div className="socials">
-          <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={16} /></SocialIcon>
-          <SocialIcon href={social.telegram} label="Telegram"><Send size={16} /></SocialIcon>
-          <SocialIcon href={social.viber} label="Viber"><Phone size={16} /></SocialIcon>
-          <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={16} /></SocialIcon>
+      <div className="footer-inner footer-grid">
+        <div className="footer-col footer-brand">
+          <div className="logo footer-logo"><span className="logo-word"><span className="logo-avto">Avto</span><span className="logo-mix">Mix</span></span></div>
+          <p>Покупка та продаж автомобілів у Львові та Львівській області.</p>
+          <div className="socials">
+            <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={16} /></SocialIcon>
+            <SocialIcon href={social.telegram} label="Telegram"><Send size={16} /></SocialIcon>
+            <SocialIcon href={social.viber} label="Viber"><Phone size={16} /></SocialIcon>
+            <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={16} /></SocialIcon>
+          </div>
         </div>
-        <p className="copyright">© {new Date().getFullYear()} Avto Mix. Демонстраційний прототип.</p>
+
+        <div className="footer-col">
+          <h5>Навігація</h5>
+          <button onClick={() => setView("catalog")}>Авто в наявності</button>
+          <button onClick={() => setView("selection")}>Підбір авто</button>
+          <button onClick={() => setView("tradein")}>Trade-In</button>
+          <button onClick={() => setView("insurance")}>Страхування авто</button>
+          <button onClick={() => setView("vin")}>VIN-перевірка</button>
+          <button onClick={() => setView("contacts")}>Контакти</button>
+        </div>
+
+        <div className="footer-col">
+          <h5>Клієнтам</h5>
+          <button onClick={() => setView("contacts")}>Як це працює?</button>
+          <button onClick={() => setView("contacts")}>Питання та відповіді</button>
+          <button onClick={() => setView("contacts")}>Угода користувача</button>
+          <button onClick={() => setView("contacts")}>Політика конфіденційності</button>
+        </div>
+
+        <div className="footer-col">
+          <h5>Зв'яжіться з нами</h5>
+          <p className="footer-contact-line"><Phone size={14} /> +38 (093) 123 45 67</p>
+          <p className="footer-contact-line"><Send size={14} /> info@avtomix.lviv.ua</p>
+          <p className="footer-contact-line"><MapPin size={14} /> м. Львів, вул. Зелена, 147</p>
+        </div>
       </div>
+      <p className="copyright">© {new Date().getFullYear()} AvtoMix. Усі права захищені.</p>
     </footer>
   );
 }
@@ -1375,10 +1694,17 @@ export default function AvtoMixApp() {
   });
   const [banner, setBanner] = useState({
     slides: [
-      { image: "https://picsum.photos/seed/avtomix-hero1/1600/800", title: "Avto Mix", subtitle: "Купуйте та продавайте автомобілі легко" },
-      { image: "https://picsum.photos/seed/avtomix-hero2/1600/800", title: "Перевірені автомобілі", subtitle: "Детальні характеристики та реальні фото кожного авто" },
+      { image: "/hero-slide-1.png", eyebrow: "AVTO MIX · ЛЬВІВ ТА ЛЬВІВСЬКА ОБЛАСТЬ", title: "Знайдіть своє наступне авто",
+        subtitle: "Переглядайте актуальні оголошення, користуйтеся VIN-перевіркою та знаходьте автомобілі у Львові й Львівській області.",
+        bgSize: "auto 100%", bgPosition: "right", bgColor: "#0D0F14",
+        primaryLabel: "Переглянути автомобілі", primaryView: "home", secondaryLabel: "VIN-перевірка", secondaryView: "vin" },
+      { image: "/hero-slide-2.png", eyebrow: "AVTO MIX · ПРОДАЖ АВТО", title: "Продайте авто швидко та без зайвих клопотів",
+        subtitle: "Додайте оголошення за кілька хвилин, а покупці знайдуть вас. Перед покупкою перевіряйте автомобіль за VIN.",
+        bgSize: "auto 100%", bgPosition: "right", bgColor: "#0D0F14",
+        primaryLabel: "Подати оголошення", primaryView: "submit", secondaryLabel: "Як це працює?", secondaryView: "contacts" },
       { image: "/insurance-banner.png", title: "Всі види автострахування", subtitle: "Автоцивілка, Зелена карта, ДЦВ — оформимо поліс за кілька хвилин, без відвідування офісу",
         hideEyebrow: true,
+        overlay: "linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.05))",
         primaryLabel: "Отримати поліс", primaryView: "insurance", secondaryLabel: "Переглянути умови", secondaryView: "insurance" }
     ]
   });
@@ -1514,15 +1840,18 @@ export default function AvtoMixApp() {
           --border: #E4E3DF; --header-bg: #0A0A0A; --header-text: #F4F4F4;
         }
         .app-root[data-theme="dark"] {
-          --bg: #0B0B0F; --bg-alt: #17171C; --surface: #1B1B21; --surface-2: #222229;
-          --text: #F4F3F0; --text-muted: #96959D; --accent: #FF5A36; --accent-2: #FFB238; --accent-text: #0B0B0F;
-          --border: #2B2B33; --header-bg: #0D0D11; --header-text: #F4F3F0;
+          --bg: #0D0F14; --bg-alt: #171A20; --surface: #171A20; --surface-2: #1D2028;
+          --text: #F4F3F0; --text-muted: #96959D; --accent: #FF6B1A; --accent-2: #FF8A42; --accent-text: #0D0F14;
+          --border: #262A33; --header-bg: #0D0F14; --header-text: #F4F3F0;
         }
         .app-root[data-theme="dark"] .btn.primary {
           background: linear-gradient(135deg, var(--accent), var(--accent-2));
-          box-shadow: 0 6px 22px rgba(255, 90, 54, 0.28);
+          box-shadow: 0 6px 22px rgba(255, 107, 26, 0.3);
+          transition: box-shadow 0.2s ease, filter 0.2s ease, transform 0.15s ease;
         }
-        .app-root[data-theme="dark"] .btn.primary:hover { box-shadow: 0 8px 28px rgba(255, 90, 54, 0.4); opacity: 1; filter: brightness(1.05); }
+        .app-root[data-theme="dark"] .btn.primary:hover { box-shadow: 0 8px 30px rgba(255, 107, 26, 0.55); opacity: 1; filter: brightness(1.06); transform: translateY(-1px); }
+        .app-root[data-theme="dark"] .btn.outline { transition: box-shadow 0.2s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease; }
+        .app-root[data-theme="dark"] .btn.outline:hover { box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(255, 107, 26, 0.22); transform: translateY(-1px); }
         .app-root[data-theme="dark"] .price,
         .app-root[data-theme="dark"] .big-price {
           background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -1573,10 +1902,10 @@ export default function AvtoMixApp() {
         .social-ic:hover { border-color: var(--accent); color: var(--accent); }
         .header-main { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
         .logo { display: flex; align-items: center; gap: 9px; cursor: pointer; }
-        .logo-word { font-family: var(--font-display); font-weight: 700; font-size: 25px; letter-spacing: 0.3px; }
-        .logo-avto { color: #FF8A2B; }
-        .logo-mix { color: #E8281C; }
-        .footer-logo .logo-word { font-size: 28px; }
+        .logo-word { font-family: var(--font-display); font-weight: 700; font-size: 32px; letter-spacing: 0.3px; }
+        .logo-avto { color: var(--text); }
+        .logo-mix { color: var(--accent); }
+        .footer-logo .logo-word { font-size: 34px; }
         .main-nav { gap: 4px; margin-left: 8px; }
         .nav-link { background: none; border: none; color: #c9c9c9; font-weight: 600; font-size: 13.5px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap; }
         .nav-link:hover { color: var(--header-text); }
@@ -1609,9 +1938,13 @@ export default function AvtoMixApp() {
         }
 
         .hero { position: relative; overflow: hidden; }
-        .hero-slide { height: 460px; background-size: cover; background-position: center; display: flex; align-items: center; position: relative; }
+        .hero-slide { height: 460px; position: relative; display: flex; align-items: center; overflow: hidden; }
+        .hero-bg { position: absolute; inset: -12px; background-size: cover; background-position: center; animation: kenburns 14s ease-in-out infinite alternate; will-change: transform; }
+        .hero-overlay { position: absolute; inset: 0; }
+        @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
+        @media (prefers-reduced-motion: reduce) { .hero-bg { animation: none; } }
         .hero-beam { position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.10), transparent 60%); }
-        .hero-content { position: relative; max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; color: #fff; }
+        .hero-content { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; color: #fff; }
         .hero-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
         .hero-title { font-size: 52px; line-height: 1.05; max-width: 640px; }
         .hero-sub { font-size: 17px; margin-top: 14px; max-width: 480px; opacity: 0.92; }
@@ -1684,7 +2017,8 @@ export default function AvtoMixApp() {
         .trim { color: var(--text-muted); font-size: 12.5px; margin-top: 2px; }
         .specs-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--text-muted); }
         .specs-row span { display: flex; align-items: center; gap: 4px; }
-        .car-card-bottom { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 10px; }
+        .car-card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 10px; gap: 8px; flex-wrap: wrap; }
+        .owner-tag { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
         .city { display: flex; align-items: center; gap: 4px; color: var(--text-muted); }
         .cmp-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); margin-top: 10px; cursor: pointer; }
         .load-more { display: flex; margin: 26px auto 0; }
@@ -1751,13 +2085,75 @@ export default function AvtoMixApp() {
         .vin-form { display: flex; gap: 10px; flex-wrap: wrap; }
         .vin-input { flex: 1; min-width: 220px; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
         .bidfax-highlight { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+        .features-row-wrap { padding-top: 28px; padding-bottom: 6px; }
+        .features-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+        .feature-card { display: flex; gap: 14px; align-items: flex-start; padding: 20px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
+        .feature-card.clickable { cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+        .feature-card.clickable:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .feature-icon { width: 42px; height: 42px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .feature-card h4 { margin: 0 0 2px; font-size: 16px; }
+        .feature-tag { font-size: 12px; color: var(--text-muted); }
+        .feature-card p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .promo-banners-wrap { padding-top: 8px; }
+        .promo-banners { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .promo-card { border-radius: 16px; padding: 36px 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+        .promo-dark { background: linear-gradient(135deg, #14171d, #0d0f14); border: 1px solid var(--border); }
+        .promo-accent { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, #14171d), #0d0f14); border: 1px solid var(--accent); }
+        .promo-icon { width: 56px; height: 56px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        .promo-card h3 { margin: 0; font-size: 22px; }
+        .promo-card p { margin: 6px 0 18px; color: var(--text-muted); font-size: 14px; max-width: 360px; }
+        @media (max-width: 720px) {
+          .promo-banners { grid-template-columns: 1fr; }
+        }
         .insurance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-top: 24px; }
-        .insurance-card { position: relative; border: 1px solid var(--border); border-radius: 14px; padding: 22px 18px 18px; background: var(--surface); display: flex; flex-direction: column; gap: 8px; }
+        .insurance-card { position: relative; border: 1px solid var(--border); border-radius: 16px; padding: 26px 20px 22px; background: var(--surface); display: flex; flex-direction: column; gap: 8px; transition: transform 0.2s ease, border-color 0.2s ease; }
+        .insurance-card:hover { transform: translateY(-4px); border-color: var(--accent); }
         .insurance-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
         .insurance-card-tag { position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--accent); }
-        .insurance-card-icon { width: 44px; height: 44px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+        .insurance-card-icon { width: 48px; height: 48px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
         .insurance-card h4 { margin: 0; font-size: 17px; }
         .insurance-card p { margin: 0 0 10px; font-size: 13px; color: var(--text-muted); line-height: 1.5; flex: 1; }
+
+        .insurance-page { padding-bottom: 20px; }
+        .breadcrumb-wrap { padding-top: 18px; padding-bottom: 0; }
+        .breadcrumb { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .breadcrumb span:last-child { color: var(--text); }
+        .section-title { font-size: 26px; margin: 0 0 4px; }
+
+        .ins-hero { position: relative; overflow: hidden; border-radius: 20px; margin: 20px 24px 0; }
+        .ins-hero-bg { position: absolute; inset: -10px; background-size: cover; background-position: center 30%; animation: kenburns 16s ease-in-out infinite alternate; }
+        .ins-hero-overlay { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(6,7,10,0.92) 30%, rgba(6,7,10,0.55) 60%, rgba(6,7,10,0.25)); }
+        .ins-hero-inner { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 70px 40px; flex-wrap: wrap; color: #fff; }
+        .ins-hero-text { max-width: 560px; }
+        .ins-hero-title { font-size: 44px; line-height: 1.1; margin: 10px 0 16px; font-weight: 700; }
+        .ins-hero-sub { font-size: 16px; color: #d8d8dc; margin-bottom: 26px; max-width: 480px; }
+        .ins-glass-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(14px); border-radius: 16px; padding: 22px 26px; display: flex; flex-direction: column; gap: 16px; min-width: 240px; }
+        .ins-glass-row { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: #fff; }
+        .ins-glass-row svg { color: var(--accent); flex-shrink: 0; }
+
+        .ins-steps { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin-top: 28px; flex-wrap: wrap; }
+        .ins-step { display: flex; flex-direction: column; align-items: center; text-align: center; width: 200px; gap: 12px; }
+        .ins-step-icon { position: relative; width: 64px; height: 64px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+        .ins-step-num { position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .ins-step p { margin: 0; font-size: 14px; color: var(--text-muted); }
+        .ins-step-arrow { color: var(--text-muted); margin-top: 22px; }
+        @media (max-width: 720px) { .ins-step-arrow { display: none; } }
+
+        .ins-why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-top: 24px; }
+        .ins-why-card { border-radius: 16px; padding: 22px 20px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); backdrop-filter: blur(6px); }
+        .ins-why-card h4 { margin: 4px 0; font-size: 15.5px; }
+        .ins-why-card p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        .ins-final-banner { position: relative; border-radius: 20px; overflow: hidden; padding: 54px 40px; background: radial-gradient(circle at 15% 30%, rgba(255,107,26,0.22), transparent 55%), radial-gradient(circle at 85% 70%, rgba(255,107,26,0.14), transparent 50%), #0a0b0e; }
+        .ins-final-text h3 { font-size: 28px; margin: 0 0 10px; }
+        .ins-final-text p { color: var(--text-muted); margin: 0 0 22px; max-width: 460px; }
+
+        @media (max-width: 900px) {
+          .ins-hero { margin: 14px 16px 0; }
+          .ins-hero-inner { padding: 44px 0; }
+          .ins-hero-title { font-size: 30px; }
+          .ins-glass-card { width: 100%; }
+        }
         .insurance-banner { position: relative; overflow: hidden; border-radius: 16px; margin: 24px 0; padding: 28px 26px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; background: linear-gradient(120deg, #0f2e22, #163f2c 55%, #1f5c3a); color: #fff; }
         .insurance-banner::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 85% 20%, rgba(255,255,255,0.12), transparent 60%); pointer-events: none; }
         .insurance-banner-icon { width: 54px; height: 54px; border-radius: 14px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -1835,16 +2231,113 @@ export default function AvtoMixApp() {
         .banner-edit-fields { flex: 1; display: flex; flex-direction: column; gap: 8px; }
         .banner-edit-fields label { font-size: 11px; color: var(--text-muted); }
 
-        .footer { background: var(--header-bg); color: var(--header-text); margin-top: auto; padding: 40px 24px 24px; }
-        .footer-inner { max-width: 1280px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-        .footer-logo { justify-content: center; }
+        .footer { background: var(--header-bg); color: var(--header-text); margin-top: auto; padding: 48px 24px 24px; border-top: 1px solid var(--border); }
+        .footer-inner { max-width: 1280px; margin: 0 auto; }
+        .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 32px; text-align: left; }
+        .footer-logo { justify-content: flex-start; }
+        .footer-brand p { max-width: 320px; }
+        .footer-col h5 { font-size: 14px; margin: 0 0 14px; color: var(--text); }
+        .footer-col { display: flex; flex-direction: column; gap: 10px; }
+        .footer-col button { background: none; border: none; padding: 0; text-align: left; color: #b8b8b8; font-size: 13.5px; cursor: pointer; }
+        .footer-col button:hover { color: var(--accent); }
+        .footer-contact-line { display: flex; align-items: center; gap: 8px; margin: 0; }
         .catalog-intro { color: var(--text-muted); font-size: 13.5px; margin-top: 4px; max-width: 560px; }
-        .footer p { color: #b8b8b8; font-size: 13.5px; max-width: 440px; }
-        .copyright { font-size: 11.5px; color: #7a7a7a; margin-top: 12px; }
+        .footer p { color: #b8b8b8; font-size: 13.5px; max-width: 440px; margin: 10px 0; }
+        .copyright { font-size: 11.5px; color: #7a7a7a; margin: 32px auto 0; max-width: 1280px; padding-top: 20px; border-top: 1px solid var(--border); }
+        @media (max-width: 860px) {
+          .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 560px) {
+          .footer-grid { grid-template-columns: 1fr; text-align: center; }
+          .footer-brand p { max-width: none; }
+          .footer-logo { justify-content: center; }
+          .footer-col { align-items: center; }
+        }
 
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 12px 22px; border-radius: 30px; font-size: 13.5px; font-weight: 600; z-index: 100; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
 
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        /* ===== AvtoMix Auto Passport (always-dark premium page) ===== */
+        .passport-page {
+          --pp-bg: #08080B; --pp-card: rgba(255,255,255,0.045); --pp-card-solid: #17171C;
+          --pp-border: rgba(255,255,255,0.09); --pp-text: #F5F5F3; --pp-muted: #9A9AA5; --pp-accent: #FF6B1A;
+          background: var(--pp-bg); color: var(--pp-text); margin: -1px 0 0; padding-bottom: 60px;
+        }
+        .passport-hero { position: relative; padding: 56px 24px 40px; background: radial-gradient(ellipse at 80% 0%, rgba(255,107,26,0.14), transparent 55%), var(--pp-bg); }
+        .passport-hero-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; }
+        @media (max-width: 900px) { .passport-hero-inner { grid-template-columns: 1fr; gap: 32px; } }
+        .passport-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.5px; color: var(--pp-accent); margin-bottom: 16px; }
+        .passport-hero-left h1 { font-family: var(--font-display); font-size: 42px; line-height: 1.08; margin: 0 0 14px; color: #fff; }
+        .passport-sub { color: var(--pp-muted); font-size: 15.5px; line-height: 1.6; max-width: 460px; margin-bottom: 26px; }
+        .passport-form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .passport-form input { flex: 1; min-width: 220px; background: var(--pp-card); border: 1px solid var(--pp-border); color: #fff; border-radius: 10px; padding: 14px 16px; font-family: var(--font-mono); letter-spacing: 1px; font-size: 14px; }
+        .passport-page .btn.primary { background: linear-gradient(135deg, var(--pp-accent), #FFA24D); color: #0A0A0A; box-shadow: 0 8px 24px rgba(255,107,26,0.3); }
+        .passport-page .btn.outline { background: var(--pp-card); border-color: var(--pp-border); color: var(--pp-text); }
+        .passport-page .btn.outline:hover { border-color: var(--pp-accent); color: var(--pp-accent); }
+        .passport-trust { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12.5px; color: var(--pp-muted); }
+        .passport-trust span { display: flex; align-items: center; gap: 5px; }
+        .passport-trust svg { color: var(--pp-accent); }
+        .passport-hero-right { display: flex; align-items: center; justify-content: center; }
+        .passport-preview-card { width: 100%; aspect-ratio: 4/3; border: 1px dashed var(--pp-border); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--pp-muted); background: var(--pp-card); text-align: center; padding: 30px; }
+        .passport-preview-card svg { color: var(--pp-accent); }
+        .passport-preview-card p { max-width: 260px; font-size: 13.5px; }
+        .passport-score-card { position: relative; width: 100%; border-radius: 20px; overflow: hidden; border: 1px solid var(--pp-border); backdrop-filter: blur(20px); }
+        .passport-score-card img { width: 100%; height: 320px; object-fit: cover; display: block; }
+        .passport-score-overlay { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(0deg, rgba(8,8,11,0.95), rgba(8,8,11,0.2)); padding: 20px; display: flex; align-items: center; gap: 16px; }
+        .score-ring { width: 66px; height: 66px; border-radius: 50%; background: conic-gradient(var(--pp-accent) 87%, rgba(255,255,255,0.12) 0); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
+        .score-ring::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--pp-card-solid); }
+        .score-ring span { position: relative; font-family: var(--font-display); font-weight: 700; font-size: 19px; color: #fff; }
+        .score-ring small { position: relative; font-size: 9px; color: var(--pp-muted); margin-left: 1px; }
+        .passport-score-overlay b { font-size: 16px; color: #fff; }
+        .passport-score-overlay p { margin: 2px 0 0; font-size: 12px; color: var(--pp-muted); }
+        .risk-low { color: #3ecb6a; font-weight: 600; }
+        .passport-demo-banner { max-width: 1280px; margin: 0 auto 8px; padding: 0 24px; display: flex; gap: 10px; align-items: flex-start; }
+        .passport-demo-banner svg { color: var(--pp-accent); flex-shrink: 0; margin-top: 2px; }
+        .passport-demo-banner p { font-size: 12.5px; color: var(--pp-muted); line-height: 1.6; margin: 0; }
+        .passport-section { max-width: 1280px; margin: 40px auto 0; padding: 0 24px; }
+        .passport-section h3 { font-family: var(--font-display); font-size: 19px; color: #fff; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+        .real-tag { font-size: 10.5px; font-weight: 700; background: rgba(62,203,106,0.15); color: #3ecb6a; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .demo-tag { font-size: 10.5px; font-weight: 700; background: rgba(255,107,26,0.15); color: var(--pp-accent); padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .passport-section .specs-grid div { border-bottom-color: var(--pp-border); }
+        .passport-section .specs-grid span { color: var(--pp-muted); }
+        .passport-section .specs-grid b { color: #fff; }
+        .quickcheck-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .quickcheck-card { display: flex; align-items: center; gap: 10px; background: var(--pp-card); border: 1px solid var(--pp-border); border-radius: 12px; padding: 14px 16px; font-size: 13.5px; }
+        .quickcheck-card.ok svg { color: #3ecb6a; }
+        .quickcheck-card.warn svg { color: var(--pp-accent); }
+        .passport-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .passport-gallery img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 1px solid var(--pp-border); transition: transform .15s ease; }
+        .passport-gallery img:hover { transform: scale(1.02); }
+        .passport-timeline { display: flex; flex-direction: column; gap: 0; border-left: 2px solid var(--pp-border); padding-left: 22px; margin-left: 6px; }
+        .timeline-item { position: relative; padding-bottom: 22px; display: flex; gap: 14px; align-items: baseline; }
+        .timeline-dot { position: absolute; left: -28px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--pp-accent); box-shadow: 0 0 0 4px rgba(255,107,26,0.18); }
+        .timeline-year { font-family: var(--font-mono); font-size: 13px; color: var(--pp-accent); font-weight: 600; min-width: 42px; }
+        .timeline-text { font-size: 13.5px; color: var(--pp-text); }
+        .passport-route { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; background: var(--pp-card); border: 1px solid var(--pp-border); border-radius: 14px; padding: 20px; }
+        .route-stop { font-size: 14px; font-weight: 600; background: rgba(255,255,255,0.06); padding: 8px 14px; border-radius: 20px; }
+        .route-arrow { color: var(--pp-accent); }
+        .ai-block { display: flex; gap: 18px; align-items: flex-start; background: linear-gradient(135deg, rgba(255,107,26,0.08), rgba(255,255,255,0.02)); border: 1px solid var(--pp-border); border-radius: 18px; padding: 26px; }
+        .ai-block-icon { width: 46px; height: 46px; border-radius: 12px; background: rgba(255,107,26,0.15); color: var(--pp-accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .ai-block p { color: var(--pp-muted); font-size: 14px; line-height: 1.7; max-width: 720px; margin: 10px 0 18px; }
+        .passport-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .whatcheck-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+        .whatcheck-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--pp-text); background: var(--pp-card); border: 1px solid var(--pp-border); border-radius: 10px; padding: 11px 14px; }
+        .whatcheck-item svg { color: var(--pp-accent); flex-shrink: 0; }
+        .passport-page .bidfax-highlight { max-width: 1280px; margin: 40px auto 0; }
+        .passport-page .vin-disclaimer { max-width: 1280px; margin: 20px auto 0; padding: 0 24px; }
+        .passport-cta { max-width: 1280px; margin: 48px auto 0; padding: 44px 32px; text-align: center; border-radius: 22px; background: radial-gradient(ellipse at 50% 0%, rgba(255,107,26,0.18), transparent 60%), #0F0F13; border: 1px solid var(--pp-border); }
+        .passport-cta h3 { font-family: var(--font-display); font-size: 26px; color: #fff; margin-bottom: 8px; }
+        .passport-cta p { color: var(--pp-muted); font-size: 14.5px; margin-bottom: 22px; }
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 30px; cursor: zoom-out; }
+        .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 10px; object-fit: contain; }
+        .lightbox-close { position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        @media (max-width: 640px) {
+          .passport-hero { padding: 40px 16px 30px; }
+          .passport-hero-left h1 { font-size: 30px; }
+          .passport-section { margin-top: 30px; padding: 0 16px; }
+          .passport-demo-banner { padding: 0 16px; }
+        }
       `}</style>
 
       <Header theme={theme} setTheme={setTheme} view={view} setView={setView} query={query} setQuery={setQuery}
@@ -1854,8 +2347,10 @@ export default function AvtoMixApp() {
       {view === "home" && (
         <>
           <HeroBanner banner={banner} setView={setView} />
+          <FeaturesRow setView={setView} />
           <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
             compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen} />
+          <PromoBanners setView={setView} />
         </>
       )}
 
@@ -1904,7 +2399,7 @@ export default function AvtoMixApp() {
         )
       )}
 
-      <Footer social={social} />
+      <Footer social={social} setView={setView} />
 
       {toast && <div className="toast">{toast}</div>}
     </div>
