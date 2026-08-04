@@ -230,13 +230,13 @@ function PromoBanners({ setView }) {
   return (
     <div className="page-simple promo-banners-wrap">
       <div className="promo-banners">
-        <div className="promo-card promo-dark">
+        <div className="promo-card promo-dark has-photo" style={{ backgroundImage: "linear-gradient(0deg, rgba(10,10,12,0.92), rgba(10,10,12,0.45)), url(/cta-sell.png)" }}>
           <div className="promo-icon"><KeyRound size={30} /></div>
           <h3>Хочете продати авто?</h3>
           <p>Розмістіть оголошення та знайдіть покупця швидше.</p>
           <button className="btn primary lg" onClick={() => setView("submit")}><Plus size={16} /> Подати оголошення</button>
         </div>
-        <div className="promo-card promo-accent">
+        <div className="promo-card promo-accent has-photo" style={{ backgroundImage: "linear-gradient(0deg, rgba(10,10,12,0.92), rgba(10,10,12,0.45)), url(/cta-selection.png)" }}>
           <div className="promo-icon"><Search size={30} /></div>
           <h3>Потрібна допомога з підбором авто?</h3>
           <p>Наші експерти допоможуть підібрати найкращий варіант.</p>
@@ -1274,7 +1274,6 @@ function VinCheckView({ toast }) {
     { year: "2025", text: "Остання реєстрація" }
   ];
   const demoRoute = ["🇺🇸 США", "🇵🇱 Польща", "🇺🇦 Україна"];
-  const whatWeCheck = ["VIN", "ДТП", "Фото", "Пробіг", "Реєстрації", "Власники", "Викрадення", "Арешти", "Застави", "Страхові випадки", "Історія аукціонів", "Комплектація", "Ринкова вартість"];
   const carLabel = result ? `${result.Make || ""} ${result.Model || ""}`.trim() : "";
 
   return (
@@ -1291,20 +1290,10 @@ function VinCheckView({ toast }) {
                 {loading ? <><Loader2 size={16} className="spin-ic" /> Перевіряємо...</> : <><Search size={16} /> Перевірити автомобіль</>}
               </button>
             </form>
-            <div className="passport-trust">
-              <span><CheckCircle2 size={14} /> перевірка займає до 30 секунд</span>
-              <span><CheckCircle2 size={14} /> офіційні джерела</span>
-              <span><CheckCircle2 size={14} /> фото автомобіля</span>
-            </div>
             {error && <div className="vin-error"><AlertTriangle size={16} /> {error}</div>}
           </div>
           <div className="passport-hero-right">
-            {!result ? (
-              <div className="passport-preview-card">
-                <ScanLine size={34} />
-                <p>Тут з'явиться цифровий паспорт автомобіля одразу після перевірки</p>
-              </div>
-            ) : (
+            {result && (
               <div className="passport-score-card">
                 <img src={demoPhotos[0]} alt={carLabel} />
                 <div className="passport-score-overlay">
@@ -1395,13 +1384,6 @@ function VinCheckView({ toast }) {
         </>
       )}
 
-      <section className="passport-section">
-        <h3>Що перевіряє AvtoMix</h3>
-        <div className="whatcheck-grid">
-          {whatWeCheck.map((w) => <div key={w} className="whatcheck-item"><CheckCircle2 size={14} /> {w}</div>)}
-        </div>
-      </section>
-
       <div className="bidfax-highlight">
         <div className="bidfax-highlight-text">
           <h4><ShieldCheck size={16} style={{ verticalAlign: -2, marginRight: 6 }} />Фото пошкоджень і аукціонна історія</h4>
@@ -1417,12 +1399,6 @@ function VinCheckView({ toast }) {
       </div>
 
       <p className="vin-disclaimer">Базова розшифровка виконується через відкриту базу даних NHTSA (США) і працює для більшості VIN, виданих у Північній Америці. Дані про ДТП, аукціони та фото авто bidfax.info надає окремо на своєму сайті. Розділи з позначкою «приклад» показують демонстраційні дані для ілюстрації майбутньої функції.</p>
-
-      <section className="passport-cta">
-        <h3>Перевірте автомобіль до покупки</h3>
-        <p>Не ризикуйте своїми коштами. Отримайте повну історію автомобіля за кілька секунд.</p>
-        <button className="btn primary lg" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>Перевірити VIN</button>
-      </section>
 
       {galleryOpen && (
         <div className="lightbox" onClick={() => setGalleryOpen(false)}>
@@ -1686,7 +1662,7 @@ export default function AvtoMixApp() {
       { image: "/hero-slide-1.png", eyebrow: "AVTO MIX · ЛЬВІВ ТА ЛЬВІВСЬКА ОБЛАСТЬ", title: "Знайдіть своє наступне авто",
         subtitle: "Переглядайте актуальні оголошення, користуйтеся VIN-перевіркою та знаходьте автомобілі у Львові й Львівській області.",
         bgSize: "auto 100%", bgPosition: "right", bgColor: "#0D0F14",
-        primaryLabel: "Переглянути автомобілі", primaryView: "home", secondaryLabel: "VIN-перевірка", secondaryView: "vin" },
+        primaryLabel: "Переглянути автомобілі", primaryView: "catalog", secondaryLabel: "VIN-перевірка", secondaryView: "vin" },
       { image: "/hero-slide-2.png", eyebrow: "AVTO MIX · ПРОДАЖ АВТО", title: "Продайте авто швидко та без зайвих клопотів",
         subtitle: "Додайте оголошення за кілька хвилин, а покупці знайдуть вас. Перед покупкою перевіряйте автомобіль за VIN.",
         bgSize: "auto 100%", bgPosition: "right", bgColor: "#0D0F14",
@@ -2089,6 +2065,7 @@ export default function AvtoMixApp() {
         .promo-banners-wrap { padding-top: 8px; }
         .promo-banners { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .promo-card { border-radius: 16px; padding: 36px 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+        .promo-card.has-photo { background-size: cover; background-position: center; min-height: 260px; justify-content: flex-end; }
         .promo-dark { background: linear-gradient(135deg, #14171d, #0d0f14); border: 1px solid var(--border); }
         .promo-accent { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, #14171d), #0d0f14); border: 1px solid var(--accent); }
         .promo-icon { width: 56px; height: 56px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
@@ -2136,7 +2113,7 @@ export default function AvtoMixApp() {
         .ins-why-card h4 { margin: 4px 0; font-size: 15.5px; }
         .ins-why-card p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
 
-        .ins-final-banner { position: relative; border-radius: 20px; overflow: hidden; padding: 54px 40px; background: radial-gradient(circle at 15% 30%, rgba(255,107,26,0.22), transparent 55%), radial-gradient(circle at 85% 70%, rgba(255,107,26,0.14), transparent 50%), #0a0b0e; }
+        .ins-final-banner { position: relative; border-radius: 20px; overflow: hidden; padding: 54px 40px; background: radial-gradient(circle at 15% 30%, rgba(255,107,26,0.22), transparent 55%), radial-gradient(circle at 85% 70%, rgba(255,107,26,0.14), transparent 50%), linear-gradient(90deg, rgba(8,9,11,0.94), rgba(8,9,11,0.55)), url(/insurance-cta.png); background-size: cover; background-position: center; }
         .ins-final-text h3 { font-size: 28px; margin: 0 0 10px; }
         .ins-final-text p { color: var(--text-muted); margin: 0 0 22px; max-width: 460px; }
 
