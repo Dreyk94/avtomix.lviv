@@ -135,11 +135,8 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
     <header className="header">
       <div className="header-top">
         <div className="header-top-inner">
-          <span className="tagline">Купівля та продаж авто по всій Україні</span>
           <div className="socials">
-            <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={15} /></SocialIcon>
             <SocialIcon href={social.telegram} label="Telegram"><Send size={15} /></SocialIcon>
-            <SocialIcon href={social.viber} label="Viber"><Phone size={15} /></SocialIcon>
             <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={15} /></SocialIcon>
           </div>
         </div>
@@ -1042,7 +1039,7 @@ function InsuranceView({ toast }) {
         <div className="page-simple ins-hero-inner">
           <div className="ins-hero-text">
             <p className="hero-eyebrow">СТРАХУВАННЯ AVTOMIX</p>
-            <h1 className="ins-hero-title">Страхування автомобіля за кілька хвилин</h1>
+            <h1 className="ins-hero-title">Страхування за кілька хвилин</h1>
             <p className="ins-hero-sub">ОСЦПВ, КАСКО, Зелена карта та інші страхові продукти від перевірених партнерів.</p>
             <div className="hero-actions">
               <button className="btn primary lg" onClick={scrollToTypes}>Оформити страховку</button>
@@ -1896,7 +1893,7 @@ export default function AvtoMixApp() {
 
         .header { position: sticky; top: 0; z-index: 40; background: var(--header-bg); color: var(--header-text); }
         .header-top { border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .header-top-inner { max-width: 1280px; margin: 0 auto; padding: 6px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #b8b8b8; }
+        .header-top-inner { max-width: 1280px; margin: 0 auto; padding: 6px 24px; display: flex; justify-content: flex-end; align-items: center; font-size: 12px; color: #b8b8b8; }
         .socials { display: flex; gap: 10px; }
         .social-ic { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; color: #d8d8d8; }
         .social-ic:hover { border-color: var(--accent); color: var(--accent); }
@@ -1907,7 +1904,7 @@ export default function AvtoMixApp() {
         .logo-mix { color: var(--accent); }
         .footer-logo .logo-word { font-size: 34px; }
         .main-nav { gap: 4px; margin-left: 8px; }
-        .nav-link { background: none; border: none; color: #c9c9c9; font-weight: 600; font-size: 13.5px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap; }
+        .nav-link { background: none; border: none; color: #c9c9c9; font-weight: 600; font-size: 14.5px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap; }
         .nav-link:hover { color: var(--header-text); }
         .nav-link.active { color: var(--accent); background: rgba(255,255,255,0.05); }
         .badge { background: var(--accent); color: var(--accent-text); font-size: 10px; border-radius: 20px; padding: 1px 6px; margin-left: 5px; }
@@ -1978,11 +1975,11 @@ export default function AvtoMixApp() {
         .vt-btn.active { background: var(--accent); color: var(--accent-text); }
         .filters { width: 260px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: sticky; top: 100px; }
         .filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .filters-head h3 { font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .filters-head h3 { font-size: 15.5px; display: flex; align-items: center; gap: 6px; }
         .f-group { margin-bottom: 12px; }
         .f-group.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .f-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
-        .f-group input, .f-group select, select, input, textarea { width: 100%; background: var(--bg-alt); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: var(--font-body); }
+        .f-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .f-group input, .f-group select, select, input, textarea { width: 100%; background: var(--bg-alt); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 9px 11px; font-size: 14px; font-family: var(--font-body); }
         .filters-toggle { display: none; }
         @media (max-width: 860px) {
           .catalog-wrap { flex-direction: column; }
@@ -2123,7 +2120,7 @@ export default function AvtoMixApp() {
         .ins-hero { position: relative; overflow: hidden; border-radius: 20px; margin: 20px 24px 0; }
         .ins-hero-bg { position: absolute; inset: -10px; background-size: cover; background-position: center 30%; animation: kenburns 16s ease-in-out infinite alternate; }
         .ins-hero-overlay { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(6,7,10,0.92) 30%, rgba(6,7,10,0.55) 60%, rgba(6,7,10,0.25)); }
-        .ins-hero-inner { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 70px 40px; flex-wrap: wrap; color: #fff; }
+        .ins-hero-inner { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 48px 40px; flex-wrap: wrap; color: #fff; }
         .ins-hero-text { max-width: 560px; }
         .ins-hero-title { font-size: 44px; line-height: 1.1; margin: 10px 0 16px; font-weight: 700; }
         .ins-hero-sub { font-size: 16px; color: #d8d8dc; margin-bottom: 26px; max-width: 480px; }
@@ -2193,7 +2190,7 @@ export default function AvtoMixApp() {
         .contacts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
         @media (max-width: 760px) { .contacts-grid { grid-template-columns: 1fr; } }
         .contacts-info { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-        .contact-row { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 12px; color: var(--text); }
+        .contact-row { display: flex; align-items: center; gap: 10px; font-size: 15px; margin-bottom: 12px; color: var(--text); }
         .contact-row a { color: var(--accent); font-weight: 600; }
         .map-placeholder { margin-top: 18px; height: 160px; border-radius: 10px; background: var(--bg-alt); border: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); font-size: 12.5px; }
         .contact-form div { display: flex; flex-direction: column; }
