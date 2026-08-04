@@ -7,7 +7,7 @@ import {
   Gauge, Fuel, Cog, Palette, User, ImageIcon, ArrowUpDown, LayoutGrid, List, Loader2,
   ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock, Maximize2,
   Award, RefreshCw, Umbrella, KeyRound, Globe, HeartPulse, ShieldAlert, Car, FileText, Zap, ChevronDown,
-  Sparkles, Download, CheckCircle2, XCircle, Fingerprint, Clock, Navigation, ScanLine, Camera
+  Sparkles, Download, CheckCircle2, XCircle, Fingerprint, Clock, Navigation, ScanLine, Camera, Route
 } from "lucide-react";
 
 const BRANDS = [
@@ -90,34 +90,41 @@ function seedCars() {
     { brand: "Nissan", model: "Qashqai", trim: "Acenta", year: 2018, body: "позашляховик", engineVolume: 1.3, power: 140, fuel: "бензин", trans: "варіатор", drive: "передній", color: "сірий", mileage: 68000, owners: 2, price: 17300, city: "Рівне", desc: "Компактний кросовер, зручний в місті, камера заднього виду." },
     { brand: "Honda", model: "Civic", trim: "Sport", year: 2020, body: "хетчбек", engineVolume: 1.5, power: 182, fuel: "бензин", trans: "робот", drive: "передній", color: "білий", mileage: 41000, owners: 1, price: 21800, city: "Дрогобич", desc: "Турбований двигун, спортивна підвіска, повна комплектація." }
   ];
-  return raw.map((c, i) => ({
-    id: `car-${i + 1}`,
-    ...c,
-    vin: `WA1${(100000000 + i * 731).toString(36).toUpperCase()}`,
-    photos: makePhotos(`avtomix${i}`, 5),
-    phone: "+380 63 123 45 67",
-    telegram: "https://t.me/avtomix_lviv",
-    viber: "viber://chat?number=%2B380631234567",
-    whatsapp: "https://wa.me/380631234567",
-    tiktokUrl: i % 3 === 0 ? "https://www.tiktok.com/@avtomix" : "",
-    views: 40 + i * 17,
-    published: true,
-    sold: i === 1 || i === 4,
-    soldAt: (i === 1 || i === 4) ? Date.now() - (i === 1 ? 2 : 9) * 86400000 : null,
-    createdAt: Date.now() - i * 86400000
-  }));
+  return raw.map((c, i) => {
+    let status = "available";
+    let extra = {};
+    if (i === 2) status = "reserved";
+    if (i === 4) { status = "in_transit"; extra = { transitStage: 2, originCountry: "США", etaLabel: "12 серпня" }; }
+    if (i === 6) { status = "in_transit"; extra = { transitStage: 4, originCountry: "Литва", etaLabel: "5 серпня" }; }
+    if (i === 8) { status = "sold"; extra = { soldAt: Date.now() - 2 * 86400000 }; }
+    return {
+      id: `car-${i + 1}`,
+      ...c,
+      vin: `WA1${(100000000 + i * 731).toString(36).toUpperCase()}`,
+      photos: makePhotos(`avtomix${i}`, 5),
+      phone: "+380 63 123 45 67",
+      telegram: "https://t.me/avtomix_lviv",
+      viber: "viber://chat?number=%2B380631234567",
+      whatsapp: "https://wa.me/380631234567",
+      tiktokUrl: i % 3 === 0 ? "https://www.tiktok.com/@avtomix" : "",
+      views: 40 + i * 17,
+      published: true,
+      status,
+      ...extra,
+      createdAt: Date.now() - i * 86400000
+    };
+  });
 }
 
 const fmtPrice = (n) => "$" + n.toLocaleString("en-US");
 const fmtNum = (n) => n.toLocaleString("uk-UA");
-const fmtRelativeDate = (ts) => {
+const fmtSoldDate = (ts) => {
   if (!ts) return "";
   const days = Math.floor((Date.now() - ts) / 86400000);
-  if (days <= 0) return "сьогодні";
-  if (days === 1) return "1 день тому";
-  if (days < 7) return `${days} дні тому`;
-  const d = new Date(ts);
-  return `${d.getDate()} ${["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня"][d.getMonth()]} ${d.getFullYear()} року`;
+  if (days <= 0) return "Продано сьогодні";
+  if (days === 1) return "Продано вчора";
+  if (days < 7) return `Продано ${days} дні тому`;
+  return "Продано " + new Date(ts).toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" });
 };
 
 function useToast() {
@@ -155,13 +162,12 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
 
         <nav className="main-nav desktop-only">
           <button className={view === "home" ? "nav-link active" : "nav-link"} onClick={() => setView("home")}>Головна</button>
-          <button className={view === "catalog" ? "nav-link active" : "nav-link"} onClick={() => setView("catalog")}>Авто в наявності</button>
+          <button className={view === "catalog" ? "nav-link active" : "nav-link"} onClick={() => setView("catalog")}>🚗 Каталог авто</button>
           <button className={view === "selection" ? "nav-link active" : "nav-link"} onClick={() => setView("selection")}>🔍 Підбір авто</button>
           <button className={view === "tradein" ? "nav-link active" : "nav-link"} onClick={() => setView("tradein")}>Trade-IN</button>
           <button className={view === "insurance" ? "nav-link active" : "nav-link"} onClick={() => setView("insurance")}>Страхування</button>
           <button className={view === "contacts" ? "nav-link active" : "nav-link"} onClick={() => setView("contacts")}>Контакти</button>
           <button className={view === "vin" ? "nav-link active" : "nav-link"} onClick={() => setView("vin")}>VIN-перевірка</button>
-          <button className={view === "sold" ? "nav-link active" : "nav-link"} onClick={() => setView("sold")}>Продані авто</button>
         </nav>
 
         <div className="header-actions">
@@ -186,13 +192,12 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Пошук..." />
           </div>
           <button className="nav-link" onClick={() => { setView("home"); setMenuOpen(false); }}>Головна</button>
-          <button className="nav-link" onClick={() => { setView("catalog"); setMenuOpen(false); }}>Авто в наявності</button>
+          <button className="nav-link" onClick={() => { setView("catalog"); setMenuOpen(false); }}>🚗 Каталог авто</button>
           <button className="nav-link" onClick={() => { setView("selection"); setMenuOpen(false); }}>🔍 Підбір авто</button>
           <button className="nav-link" onClick={() => { setView("tradein"); setMenuOpen(false); }}>Trade-IN</button>
           <button className="nav-link" onClick={() => { setView("insurance"); setMenuOpen(false); }}>Страхування</button>
           <button className="nav-link" onClick={() => { setView("contacts"); setMenuOpen(false); }}>Контакти</button>
           <button className="nav-link" onClick={() => { setView("vin"); setMenuOpen(false); }}>VIN-перевірка</button>
-          <button className="nav-link" onClick={() => { setView("sold"); setMenuOpen(false); }}>Продані авто</button>
           <div className="mobile-menu-sep" />
           <button className="nav-link" onClick={() => { setView("favorites"); setMenuOpen(false); }}>Обране ({favCount})</button>
           <button className="nav-link" onClick={() => { setView("compare"); setMenuOpen(false); }}>Порівняння ({cmpCount})</button>
@@ -308,8 +313,9 @@ function CarCard({ car, isFav, onToggleFav, isCmp, onToggleCmp, onOpen, layout =
         <button className={isFav ? "fav-btn active" : "fav-btn"} onClick={(e) => { e.stopPropagation(); onToggleFav(car.id); }} aria-label="Додати в обране">
           <Heart size={16} fill={isFav ? "currentColor" : "none"} />
         </button>
-        {!car.published && !car.sold && <span className="pending-tag">На модерації</span>}
-        {car.sold && <span className="sold-ribbon">ПРОДАНО</span>}
+        {!car.published && car.status !== "sold" && car.status !== "reserved" && <span className="pending-tag">На модерації</span>}
+        {car.status === "reserved" && <span className="reserved-tag">ЗАБРОНЬОВАНО</span>}
+        {car.status === "sold" && <span className="sold-ribbon">ПРОДАНО</span>}
       </div>
       <div className="car-card-body">
         <div className="car-card-top">
@@ -327,11 +333,14 @@ function CarCard({ car, isFav, onToggleFav, isCmp, onToggleCmp, onOpen, layout =
           <span className="city"><MapPin size={13} /> {car.city}</span>
           {car.owners === 1 && <span className="owner-tag">Перший власник</span>}
         </div>
-        {car.sold && <p className="sold-date-line"><CheckCircle2 size={13} /> Продано {fmtRelativeDate(car.soldAt)}</p>}
-        <label className="cmp-check" onClick={(e) => e.stopPropagation()}>
-          <input type="checkbox" checked={isCmp} onChange={() => onToggleCmp(car.id)} />
-          Порівняти
-        </label>
+        {car.status === "sold" ? (
+          <div className="sold-date-line">{fmtSoldDate(car.soldAt)}</div>
+        ) : (
+          <label className="cmp-check" onClick={(e) => e.stopPropagation()}>
+            <input type="checkbox" checked={isCmp} onChange={() => onToggleCmp(car.id)} />
+            Порівняти
+          </label>
+        )}
       </div>
     </article>
   );
@@ -421,13 +430,52 @@ function FilterPanel({ filters, setFilters, onReset }) {
   );
 }
 
-function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareList, toggleCmp, openCar, filtersOpen, setFiltersOpen, heading = "Каталог автомобілів", intro = "" }) {
+const TRANSIT_STAGES = ["Викуплено", "Очікує відправлення", "У дорозі", "На митниці", "Доставляється автовозом", "Готовий до продажу"];
+
+function TransitCarCard({ car, onOpen, toast }) {
+  const stage = car.transitStage ?? 0;
+  const pct = Math.round(((stage + 1) / TRANSIT_STAGES.length) * 100);
+  return (
+    <article className="car-card transit-card" onClick={() => onOpen(car.id)}>
+      <div className="car-card-img">
+        <img src={car.photos[0]} alt={`${car.brand} ${car.model}`} loading="lazy" />
+        <span className="transit-tag"><Route size={12} /> В дорозі</span>
+      </div>
+      <div className="car-card-body">
+        <div className="car-card-top">
+          <h3>{car.brand} {car.model}</h3>
+        </div>
+        <div className="specs-row">
+          <span><Globe size={13} /> {car.originCountry || "США"}</span>
+          <span><Clock size={13} /> прибуття {car.etaLabel || "—"}</span>
+        </div>
+        <div className="transit-progress">
+          <div className="transit-progress-bar"><div className="transit-progress-fill" style={{ width: `${pct}%` }} /></div>
+          <span className="transit-stage-label">{TRANSIT_STAGES[stage]}</span>
+        </div>
+        <div className="transit-actions" onClick={(e) => e.stopPropagation()}>
+          <button className="btn outline" onClick={() => onOpen(car.id)}>Детальніше</button>
+          <button className="btn primary" onClick={() => toast("Заявку на бронювання надіслано")}>Забронювати</button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareList, toggleCmp, openCar, filtersOpen, setFiltersOpen, heading = "Каталог автомобілів", intro = "", toast, defaultTab = "available" }) {
   const [sort, setSort] = useState("default");
   const [layout, setLayout] = useState("grid");
+  const [tab, setTab] = useState(defaultTab);
+
+  const byTab = useMemo(() => cars.filter((c) => {
+    if (tab === "available") return c.published && (c.status === "available" || c.status === "reserved" || !c.status);
+    if (tab === "transit") return c.status === "in_transit";
+    if (tab === "sold") return c.status === "sold";
+    return true;
+  }), [cars, tab]);
 
   const filtered = useMemo(() => {
-    const result = cars.filter((c) => {
-      if (!c.published || c.sold) return false;
+    const result = byTab.filter((c) => {
       const q = filters.search.trim().toLowerCase();
       if (q && !(`${c.brand} ${c.model} ${c.city}`.toLowerCase().includes(q))) return false;
       if (filters.brand && c.brand !== filters.brand) return false;
@@ -451,9 +499,16 @@ function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareL
     else if (sort === "year-desc") sorted.sort((a, b) => b.year - a.year);
     else if (sort === "mileage-asc") sorted.sort((a, b) => a.mileage - b.mileage);
     return sorted;
-  }, [cars, filters, sort]);
+  }, [byTab, filters, sort]);
 
   const [visible, setVisible] = useState(6);
+  useEffect(() => { setVisible(6); }, [tab]);
+
+  const counts = useMemo(() => ({
+    available: cars.filter((c) => c.published && (c.status === "available" || c.status === "reserved" || !c.status)).length,
+    transit: cars.filter((c) => c.status === "in_transit").length,
+    sold: cars.filter((c) => c.status === "sold").length
+  }), [cars]);
 
   return (
     <div className="catalog-wrap">
@@ -487,8 +542,24 @@ function CatalogView({ cars, filters, setFilters, favorites, toggleFav, compareL
             </div>
           </div>
         </div>
+
+        <div className="catalog-tabs">
+          <button className={tab === "available" ? "cat-tab active" : "cat-tab"} onClick={() => setTab("available")}>🚗 У наявності <span className="cat-tab-count">{counts.available}</span></button>
+          <button className={tab === "transit" ? "cat-tab active" : "cat-tab"} onClick={() => setTab("transit")}>🚚 В дорозі <span className="cat-tab-count">{counts.transit}</span></button>
+          <button className={tab === "sold" ? "cat-tab active" : "cat-tab"} onClick={() => setTab("sold")}>✅ Продані <span className="cat-tab-count">{counts.sold}</span></button>
+        </div>
+
         {filtered.length === 0 ? (
           <div className="empty-state">Нічого не знайдено. Спробуйте змінити фільтри.</div>
+        ) : tab === "transit" ? (
+          <>
+            <div className="cars-grid">
+              {filtered.slice(0, visible).map((c) => <TransitCarCard key={c.id} car={c} onOpen={openCar} toast={toast || (() => {})} />)}
+            </div>
+            {visible < filtered.length && (
+              <button className="btn outline load-more" onClick={() => setVisible((v) => v + 6)}>Показати ще</button>
+            )}
+          </>
         ) : (
           <>
             <div className={layout === "list" ? "cars-grid list-mode" : "cars-grid"}>
@@ -524,7 +595,7 @@ function CarDetailView({ car, cars, favorites, toggleFav, openCar, setView, toas
     return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
   }, [fullscreen, car.photos.length]);
 
-  const similar = cars.filter((c) => c.id !== car.id && c.published && !c.sold && (c.brand === car.brand || c.body === car.body)).slice(0, car.sold ? 6 : 3);
+  const similar = cars.filter((c) => c.id !== car.id && c.published && (c.status === "available" || c.status === "reserved" || !c.status) && (c.brand === car.brand || c.body === car.body)).slice(0, 3);
   const isFav = favorites.includes(car.id);
 
   const copyLink = () => {
@@ -585,17 +656,14 @@ function CarDetailView({ car, cars, favorites, toggleFav, openCar, setView, toas
               </button>
             </div>
             <p className="trim">{car.trim} · {car.year} р.</p>
-            {car.sold && (
-              <div className="archived-badge"><CheckCircle2 size={14} /> Архівне оголошення · Продано {fmtRelativeDate(car.soldAt)}</div>
-            )}
             <div className="big-price">{fmtPrice(car.price)}</div>
             <div className="meta-row"><MapPin size={14} /> {car.city} <span className="dot-sep">·</span><Eye size={14} /> {car.views} переглядів</div>
 
-            {car.sold ? (
-              <div className="sold-notice">
-                <span className="sold-badge-lg"><CheckCircle2 size={16} /> Автомобіль продано</span>
+            {car.status === "sold" ? (
+              <div className="sold-state">
+                <div className="sold-state-badge">🟠 Автомобіль продано</div>
                 <p>Цей автомобіль вже знайшов нового власника.</p>
-                <button className="btn primary lg" style={{ width: "100%" }} onClick={() => setView("catalog")}>Знайти схожі автомобілі</button>
+                <button className="btn primary block" onClick={() => setView("catalog")}>Знайти схожі автомобілі</button>
               </div>
             ) : (
               <div className="contact-buttons">
@@ -1155,66 +1223,6 @@ function InsuranceView({ toast }) {
   );
 }
 
-function SoldCarsView({ cars, favorites, toggleFav, openCar }) {
-  const [brand, setBrand] = useState("");
-  const sold = cars.filter((c) => c.sold);
-  const brands = [...new Set(sold.map((c) => c.brand))];
-  const filtered = (brand ? sold.filter((c) => c.brand === brand) : sold)
-    .slice()
-    .sort((a, b) => (b.soldAt || 0) - (a.soldAt || 0));
-
-  return (
-    <div className="page-simple">
-      <h2>Продані автомобілі</h2>
-      <p className="intro-text">Історія автомобілів, які вже знайшли нових власників через AvtoMix. Оголошення архівуються, а не видаляються — вся інформація залишається доступною.</p>
-
-      <div className="sold-filter-row">
-        <select value={brand} onChange={(e) => setBrand(e.target.value)}>
-          <option value="">Всі марки</option>
-          {brands.map((b) => <option key={b}>{b}</option>)}
-        </select>
-        <span className="muted-small">{filtered.length} проданих авто</span>
-      </div>
-
-      {filtered.length === 0 ? (
-        <p className="intro-text">Поки що немає проданих автомобілів за цим фільтром.</p>
-      ) : (
-        <div className="cars-grid">
-          {filtered.map((c) => (
-            <CarCard key={c.id} car={c} isFav={favorites.includes(c.id)} onToggleFav={toggleFav}
-              isCmp={false} onToggleCmp={() => {}} onOpen={openCar} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RecentSales({ cars, setView, openCar }) {
-  const sold = cars.filter((c) => c.sold).sort((a, b) => (b.soldAt || 0) - (a.soldAt || 0)).slice(0, 6);
-  if (sold.length === 0) return null;
-  return (
-    <div className="page-simple recent-sales-wrap">
-      <div className="section-head-row">
-        <h2 className="section-title">Останні успішні продажі</h2>
-        <button className="link-btn" onClick={() => setView("sold")}>Всі продані авто <ChevronRight size={14} /></button>
-      </div>
-      <div className="recent-sales-row">
-        {sold.map((c) => (
-          <div key={c.id} className="recent-sale-card" onClick={() => openCar(c.id)}>
-            <img src={c.photos[0]} alt={`${c.brand} ${c.model}`} />
-            <div className="recent-sale-body">
-              <b>{c.brand} {c.model} {c.year}</b>
-              <span className="recent-sale-price">{fmtPrice(c.price)}</span>
-              <span className="recent-sale-tag"><CheckCircle2 size={12} /> Продано {fmtRelativeDate(c.soldAt)}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function TradeInView({ toast }) {
   const [form, setForm] = useState({ brand: "", model: "", year: "", mileage: "", condition: "Добрий", phone: "", city: "" });
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -1365,7 +1373,7 @@ function VinCheckView({ toast }) {
   return (
     <div className="passport-page">
       <section className="passport-hero">
-        <div className={result ? "passport-hero-inner" : "passport-hero-inner no-result"}>
+        <div className={result ? "passport-hero-inner" : "passport-hero-inner solo"}>
           <div className="passport-hero-left">
             <p className="passport-eyebrow"><Fingerprint size={13} /> AVTOMIX AUTO PASSPORT</p>
             <h1>Паспорт автомобіля AvtoMix</h1>
@@ -1377,16 +1385,9 @@ function VinCheckView({ toast }) {
               </button>
             </form>
             {error && <div className="vin-error"><AlertTriangle size={16} /> {error}</div>}
-            {!result && (
-              <div className="passport-trust">
-                <span><Check size={14} /> перевірка займає до 30 секунд</span>
-                <span><Check size={14} /> офіційні джерела</span>
-                <span><Check size={14} /> фото автомобіля</span>
-              </div>
-            )}
           </div>
-          <div className="passport-hero-right">
-            {result && (
+          {result && (
+            <div className="passport-hero-right">
               <div className="passport-score-card">
                 <img src={demoPhotos[0]} alt={carLabel} />
                 <div className="passport-score-overlay">
@@ -1397,8 +1398,8 @@ function VinCheckView({ toast }) {
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1594,7 +1595,6 @@ function AuthView({ setView, toast }) {
 function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast, updateCar, deleteCar }) {
   const [tab, setTab] = useState("listings");
   const [confirmSoldId, setConfirmSoldId] = useState(null);
-  const [listingsFilter, setListingsFilter] = useState("all");
   const totalViews = cars.reduce((s, c) => s + c.views, 0);
   const published = cars.filter((c) => c.published).length;
   const pending = cars.length - published;
@@ -1615,8 +1615,7 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
 
       <div className="stat-cards">
         <div className="stat-card"><span>Всього оголошень</span><b>{cars.length}</b></div>
-        <div className="stat-card"><span>Активних</span><b>{cars.filter((c) => c.published && !c.sold).length}</b></div>
-        <div className="stat-card"><span>Продано</span><b>{cars.filter((c) => c.sold).length}</b></div>
+        <div className="stat-card"><span>Опубліковано</span><b>{published}</b></div>
         <div className="stat-card"><span>На модерації</span><b>{pending}</b></div>
         <div className="stat-card"><span>Сумарні перегляди</span><b>{fmtNum(totalViews)}</b></div>
       </div>
@@ -1629,21 +1628,10 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
 
       {tab === "listings" && (
         <div className="admin-table-wrap">
-          <div className="admin-quick-filters">
-            <button className={listingsFilter === "all" ? "tab active" : "tab"} onClick={() => setListingsFilter("all")}>Всі ({cars.length})</button>
-            <button className={listingsFilter === "active" ? "tab active" : "tab"} onClick={() => setListingsFilter("active")}>🟢 Активні ({cars.filter((c) => c.published && !c.sold).length})</button>
-            <button className={listingsFilter === "sold" ? "tab active" : "tab"} onClick={() => setListingsFilter("sold")}>🟠 Продано ({cars.filter((c) => c.sold).length})</button>
-            <button className={listingsFilter === "pending" ? "tab active" : "tab"} onClick={() => setListingsFilter("pending")}>🔴 На модерації ({pending})</button>
-          </div>
           <table className="admin-table">
             <thead><tr><th></th><th>Авто</th><th>Ціна</th><th>Місто</th><th>Перегляди</th><th>Статус</th><th>Дії</th></tr></thead>
             <tbody>
-              {cars.filter((c) => {
-                if (listingsFilter === "active") return c.published && !c.sold;
-                if (listingsFilter === "sold") return c.sold;
-                if (listingsFilter === "pending") return !c.published && !c.sold;
-                return true;
-              }).map((c) => (
+              {cars.map((c) => (
                 <tr key={c.id}>
                   <td><img className="admin-thumb" src={c.photos[0]} alt="" /></td>
                   <td>{c.brand} {c.model}<div className="muted-small">{c.year} р.</div></td>
@@ -1651,21 +1639,26 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
                   <td>{c.city}</td>
                   <td>{c.views}</td>
                   <td>
-                    {c.sold
-                      ? <span className="status-tag sold">Продано</span>
-                      : <span className={c.published ? "status-tag pub" : "status-tag pend"}>{c.published ? "Опубліковано" : "На модерації"}</span>}
+                    <select
+                      className="status-select"
+                      value={c.status || "available"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "sold") setConfirmSoldId(c.id);
+                        else patchCar(c.id, { status: val });
+                      }}
+                    >
+                      <option value="available">🟢 У наявності</option>
+                      <option value="reserved">🟠 Заброньовано</option>
+                      <option value="in_transit">🚚 В дорозі</option>
+                      <option value="sold">✅ Продано</option>
+                    </select>
+                    <div><span className={c.published ? "status-tag pub" : "status-tag pend"}>{c.published ? "Опубліковано" : "На модерації"}</span></div>
                   </td>
                   <td className="admin-actions">
-                    {!c.sold && (
-                      <button className="icon-btn small" title={c.published ? "Приховати" : "Опублікувати"} onClick={() => patchCar(c.id, { published: !c.published })}>
-                        {c.published ? <Eye size={15} /> : <Check size={15} />}
-                      </button>
-                    )}
-                    {c.sold ? (
-                      <button className="icon-btn small" title="Повернути в активні" onClick={() => patchCar(c.id, { sold: false, soldAt: null })}><RefreshCw size={15} /></button>
-                    ) : (
-                      <button className="icon-btn small sold-btn" title="Позначити як продано" onClick={() => setConfirmSoldId(c.id)}><CheckCircle2 size={15} /></button>
-                    )}
+                    <button className="icon-btn small" title={c.published ? "Приховати" : "Опублікувати"} onClick={() => patchCar(c.id, { published: !c.published })}>
+                      {c.published ? <Eye size={15} /> : <Check size={15} />}
+                    </button>
                     <button className="icon-btn small" title="Видалити" onClick={() => removeCar(c.id)}><Trash2 size={15} /></button>
                   </td>
                 </tr>
@@ -1676,13 +1669,17 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
       )}
 
       {confirmSoldId && (
-        <div className="modal-overlay" onClick={() => setConfirmSoldId(null)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <div className="lightbox" onClick={() => setConfirmSoldId(null)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Ви дійсно продали цей автомобіль?</h3>
-            <p>Оголошення зникне з активного каталогу і перейде в розділ "Продані автомобілі".</p>
-            <div className="modal-actions">
-              <button className="btn primary lg" style={{ width: "100%" }} onClick={() => { patchCar(confirmSoldId, { sold: true, soldAt: Date.now() }); toast("Автомобіль позначено як проданий"); setConfirmSoldId(null); }}>Так, автомобіль продано</button>
-              <button className="btn outline lg" style={{ width: "100%" }} onClick={() => setConfirmSoldId(null)}>Скасувати</button>
+            <div className="confirm-modal-actions">
+              <button
+                className="btn primary"
+                onClick={() => { patchCar(confirmSoldId, { status: "sold", soldAt: Date.now() }); setConfirmSoldId(null); toast("Автомобіль позначено як проданий"); }}
+              >
+                Так, автомобіль продано
+              </button>
+              <button className="btn outline" onClick={() => setConfirmSoldId(null)}>Скасувати</button>
             </div>
           </div>
         </div>
@@ -1741,12 +1738,11 @@ function Footer({ social, setView }) {
 
         <div className="footer-col">
           <h5>Навігація</h5>
-          <button onClick={() => setView("catalog")}>Авто в наявності</button>
+          <button onClick={() => setView("catalog")}>🚗 Каталог авто</button>
           <button onClick={() => setView("selection")}>Підбір авто</button>
           <button onClick={() => setView("tradein")}>Trade-In</button>
           <button onClick={() => setView("insurance")}>Страхування авто</button>
           <button onClick={() => setView("vin")}>VIN-перевірка</button>
-          <button onClick={() => setView("sold")}>Продані авто</button>
           <button onClick={() => setView("contacts")}>Контакти</button>
         </div>
 
@@ -1813,9 +1809,10 @@ export default function AvtoMixApp() {
     drive: row.drive, color: row.color, mileage: row.mileage, owners: row.owners, body: row.body,
     desc: row.description, price: row.price, city: row.city, phone: row.phone, telegram: row.telegram,
     viber: row.viber, whatsapp: row.whatsapp, tiktokUrl: row.tiktok_url, photos: row.photos || [],
-    published: row.published, sold: row.sold || false,
-    soldAt: row.sold_at ? new Date(row.sold_at).getTime() : null,
-    views: row.views || 0, createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now()
+    published: row.published, views: row.views || 0, createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    status: row.status || "available", transitStage: row.transit_stage ?? 0,
+    originCountry: row.origin_country || "", etaLabel: row.eta_label || "",
+    soldAt: row.sold_at ? new Date(row.sold_at).getTime() : null
   });
   const carToDb = (data) => ({
     brand: data.brand, model: data.model, trim: data.trim || "", year: data.year, vin: data.vin || null,
@@ -1823,8 +1820,8 @@ export default function AvtoMixApp() {
     color: data.color || "", mileage: data.mileage, owners: data.owners, body: data.body,
     description: data.desc, price: data.price, city: data.city, phone: data.phone,
     telegram: data.telegram || null, viber: data.viber || null, whatsapp: data.whatsapp || null,
-    tiktok_url: data.tiktokUrl || null, photos: data.photos || [], published: data.published ?? false,
-    sold: data.sold ?? false, sold_at: data.soldAt ? new Date(data.soldAt).toISOString() : null, views: data.views ?? 0
+    tiktok_url: data.tiktokUrl || null, photos: data.photos || [], published: data.published ?? false, views: data.views ?? 0,
+    status: data.status || "available"
   });
 
   const fetchCars = async () => {
@@ -1886,7 +1883,7 @@ export default function AvtoMixApp() {
       if (error) throw error;
       await fetchCars();
     } else {
-      setCars((cs) => [{ id: `car-${Date.now()}`, vin: data.vin || "—", createdAt: Date.now(), ...data }, ...cs]);
+      setCars((cs) => [{ id: `car-${Date.now()}`, vin: data.vin || "—", createdAt: Date.now(), status: "available", ...data }, ...cs]);
     }
   };
 
@@ -1896,8 +1893,9 @@ export default function AvtoMixApp() {
       Object.keys(patch).forEach((k) => {
         if (k === "published") dbPatch.published = patch.published;
         else if (k === "views") dbPatch.views = patch.views;
-        else if (k === "sold") dbPatch.sold = patch.sold;
+        else if (k === "status") dbPatch.status = patch.status;
         else if (k === "soldAt") dbPatch.sold_at = patch.soldAt ? new Date(patch.soldAt).toISOString() : null;
+        else if (k === "transitStage") dbPatch.transit_stage = patch.transitStage;
       });
       const { error } = await supabase.from("cars").update(dbPatch).eq("id", id);
       if (error) { showToast(error.message); return; }
@@ -2097,6 +2095,20 @@ export default function AvtoMixApp() {
         .cars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         @media (max-width: 1000px) { .cars-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { .cars-grid { grid-template-columns: 1fr; } }
+        .catalog-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+        .cat-tab { background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 14px; padding: 10px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; border-bottom: 2.5px solid transparent; margin-bottom: -2px; }
+        .cat-tab:hover { color: var(--text); }
+        .cat-tab.active { color: var(--accent); border-color: var(--accent); }
+        .cat-tab-count { background: var(--bg-alt); color: var(--text-muted); font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 20px; }
+        .cat-tab.active .cat-tab-count { background: var(--accent); color: var(--accent-text); }
+        .transit-card { cursor: pointer; }
+        .transit-tag { position: absolute; left: 10px; top: 10px; background: #2E7CF6; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+        .transit-progress { margin: 12px 0 4px; }
+        .transit-progress-bar { height: 6px; border-radius: 20px; background: var(--bg-alt); overflow: hidden; }
+        .transit-progress-fill { height: 100%; background: linear-gradient(90deg, #2E7CF6, var(--accent)); border-radius: 20px; }
+        .transit-stage-label { display: block; font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+        .transit-actions { display: flex; gap: 8px; margin-top: 14px; }
+        .transit-actions .btn { flex: 1; justify-content: center; padding: 9px 10px; font-size: 12.5px; }
         .cars-grid.list-mode { display: flex; flex-direction: column; gap: 12px; }
         .car-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
         .car-card:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -2105,19 +2117,16 @@ export default function AvtoMixApp() {
         .car-card.list .car-card-img { width: 220px; height: auto; flex-shrink: 0; }
         .car-card.list .car-card-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
         @media (max-width: 600px) { .car-card.list { flex-direction: column; } .car-card.list .car-card-img { width: 100%; height: 170px; } }
-        .car-card-img { position: relative; height: 170px; }
+        .car-card-img { position: relative; height: 170px; overflow: hidden; }
         .car-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .fav-btn.active { color: var(--accent); }
         .fav-btn.static { position: static; background: var(--bg-alt); color: var(--text); border: 1px solid var(--border); }
         .fav-btn.static.active { color: var(--accent); border-color: var(--accent); }
         .pending-tag { position: absolute; left: 10px; top: 10px; background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
-        .sold-ribbon { position: absolute; top: 14px; left: -6px; background: var(--accent); color: var(--accent-text); font-size: 12px; font-weight: 800; letter-spacing: 0.5px; padding: 5px 18px; box-shadow: 0 3px 8px rgba(0,0,0,0.35); transform: rotate(-6deg); border-radius: 3px; }
-        .sold-date-line { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--accent); margin: 6px 0 0; font-weight: 600; }
-        .sold-badge-lg { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: 13px; padding: 8px 16px; border-radius: 8px; }
-        .archived-badge { display: inline-flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 700; font-size: 12.5px; padding: 6px 14px; border-radius: 8px; margin-bottom: 16px; }
-        .sold-notice { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; text-align: center; }
-        .sold-notice p { color: var(--text-muted); margin: 10px 0 16px; }
+        .reserved-tag { position: absolute; left: 10px; top: 10px; background: #F5A623; color: #1a1a1a; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .sold-ribbon { position: absolute; top: 14px; left: -34px; transform: rotate(-45deg); background: #FF7A1A; color: #0a0a0a; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; padding: 4px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
+        .sold-date-line { margin-top: 10px; font-size: 12px; font-weight: 600; color: #FF7A1A; }
         .car-card-body { padding: 14px 16px 16px; }
         .car-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
         .car-card-top h3 { font-size: 16px; }
@@ -2336,26 +2345,6 @@ export default function AvtoMixApp() {
         .status-tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
         .status-tag.pub { background: rgba(60,180,90,0.15); color: #3ecb6a; }
         .status-tag.pend { background: rgba(255,150,0,0.15); color: var(--accent); }
-        .status-tag.sold { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-        .sold-btn { color: var(--accent); }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; max-width: 400px; width: 100%; }
-        .modal-box h3 { margin: 0 0 10px; font-size: 18px; }
-        .modal-box p { margin: 0 0 20px; color: var(--text-muted); font-size: 14px; }
-        .modal-actions { display: flex; flex-direction: column; gap: 10px; }
-        .sold-filter-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-        .sold-filter-row select { max-width: 220px; }
-        .section-head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
-        .recent-sales-wrap { padding-top: 8px; }
-        .recent-sales-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 18px; }
-        .recent-sale-card { border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: transform 0.15s ease; }
-        .recent-sale-card:hover { transform: translateY(-3px); }
-        .recent-sale-card img { width: 100%; height: 120px; object-fit: cover; display: block; }
-        .recent-sale-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
-        .recent-sale-body b { font-size: 14px; }
-        .recent-sale-price { color: var(--text-muted); font-size: 13px; }
-        .recent-sale-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--accent); font-weight: 600; margin-top: 4px; }
-        .admin-quick-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
         .admin-actions { display: flex; gap: 6px; }
         .admin-panel-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
         .banner-edit-row { display: flex; gap: 16px; margin-bottom: 20px; align-items: center; }
@@ -2398,11 +2387,10 @@ export default function AvtoMixApp() {
         }
         .passport-hero { position: relative; padding: 56px 24px 40px; background: radial-gradient(ellipse at 80% 0%, rgba(255,107,26,0.14), transparent 55%), var(--pp-bg); }
         .passport-hero-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; }
-        .passport-hero-inner.no-result { grid-template-columns: 1fr; max-width: 900px; text-align: center; }
-        .passport-hero-inner.no-result .passport-hero-right { display: none; }
-        .passport-hero-inner.no-result .passport-form { max-width: 720px; margin: 0 auto 16px; }
-        .passport-hero-inner.no-result .passport-trust { justify-content: center; }
-        .passport-hero-inner.no-result .passport-sub { margin: 0 auto 26px; }
+        .passport-hero-inner.solo { grid-template-columns: 1fr; }
+        .passport-hero-inner.solo .passport-hero-left { max-width: 760px; }
+        .passport-hero-inner.solo .passport-form { max-width: 680px; }
+        .passport-hero-inner.solo .passport-sub { max-width: 620px; }
         @media (max-width: 900px) { .passport-hero-inner { grid-template-columns: 1fr; gap: 32px; } }
         .passport-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.5px; color: var(--pp-accent); margin-bottom: 16px; }
         .passport-hero-left h1 { font-family: var(--font-display); font-size: 42px; line-height: 1.08; margin: 0 0 14px; color: #fff; }
@@ -2467,6 +2455,13 @@ export default function AvtoMixApp() {
         .passport-cta h3 { font-family: var(--font-display); font-size: 26px; color: #fff; margin-bottom: 8px; }
         .passport-cta p { color: var(--pp-muted); font-size: 14.5px; margin-bottom: 22px; }
         .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 30px; cursor: zoom-out; }
+        .confirm-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; max-width: 380px; width: 100%; cursor: default; text-align: center; }
+        .confirm-modal h3 { font-size: 17px; margin-bottom: 18px; }
+        .confirm-modal-actions { display: flex; flex-direction: column; gap: 10px; }
+        .status-select { width: 100%; margin-bottom: 6px; font-size: 12.5px; padding: 6px 8px; }
+        .sold-state { text-align: center; padding: 10px 4px; }
+        .sold-state-badge { display: inline-block; background: rgba(255,122,26,0.15); color: #FF7A1A; font-weight: 700; font-size: 13.5px; padding: 8px 16px; border-radius: 20px; margin-bottom: 10px; }
+        .sold-state p { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; }
         .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 10px; object-fit: contain; }
         .lightbox-close { position: absolute; top: 20px; right: 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         @media (max-width: 640px) {
@@ -2486,8 +2481,7 @@ export default function AvtoMixApp() {
           <HeroBanner banner={banner} setView={setView} />
           <FeaturesRow setView={setView} />
           <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
-            compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen} />
-          <RecentSales cars={cars} setView={setView} openCar={openCar} />
+            compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen} toast={showToast} />
           <PromoBanners setView={setView} />
         </>
       )}
@@ -2495,7 +2489,7 @@ export default function AvtoMixApp() {
       {view === "catalog" && (
         <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
           compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen}
-          heading="Авто в наявності" />
+          heading="Каталог авто" toast={showToast} />
       )}
 
       {view === "selection" && <SelectionRequestView toast={showToast} />}
@@ -2507,8 +2501,6 @@ export default function AvtoMixApp() {
       {view === "contacts" && <ContactsView social={social} toast={showToast} />}
 
       {view === "vin" && <VinCheckView toast={showToast} />}
-
-      {view === "sold" && <SoldCarsView cars={cars} favorites={favorites} toggleFav={toggleFav} openCar={openCar} />}
 
       {view === "detail" && selectedCar && (
         <CarDetailView car={selectedCar} cars={cars} favorites={favorites} toggleFav={toggleFav} openCar={openCar}
