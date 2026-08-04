@@ -430,6 +430,13 @@ function FilterPanel({ filters, setFilters, onReset }) {
   );
 }
 
+const STATUS_META = {
+  available: { emoji: "🟢", label: "У наявності" },
+  reserved: { emoji: "🟠", label: "Заброньовано" },
+  in_transit: { emoji: "🚚", label: "В дорозі" },
+  sold: { emoji: "✅", label: "Продано" }
+};
+
 const TRANSIT_STAGES = ["Викуплено", "Очікує відправлення", "У дорозі", "На митниці", "Доставляється автовозом", "Готовий до продажу"];
 
 function TransitCarCard({ car, onOpen, toast }) {
@@ -1595,6 +1602,7 @@ function AuthView({ setView, toast }) {
 function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast, updateCar, deleteCar }) {
   const [tab, setTab] = useState("listings");
   const [confirmSoldId, setConfirmSoldId] = useState(null);
+  const [statusModalCarId, setStatusModalCarId] = useState(null);
   const totalViews = cars.reduce((s, c) => s + c.views, 0);
   const published = cars.filter((c) => c.published).length;
   const pending = cars.length - published;
@@ -1627,44 +1635,60 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
       </div>
 
       {tab === "listings" && (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead><tr><th></th><th>Авто</th><th>Ціна</th><th>Місто</th><th>Перегляди</th><th>Статус</th><th>Дії</th></tr></thead>
-            <tbody>
-              {cars.map((c) => (
-                <tr key={c.id}>
-                  <td><img className="admin-thumb" src={c.photos[0]} alt="" /></td>
-                  <td>{c.brand} {c.model}<div className="muted-small">{c.year} р.</div></td>
-                  <td>{fmtPrice(c.price)}</td>
-                  <td>{c.city}</td>
-                  <td>{c.views}</td>
-                  <td>
-                    <select
-                      className="status-select"
-                      value={c.status || "available"}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "sold") setConfirmSoldId(c.id);
-                        else patchCar(c.id, { status: val });
-                      }}
-                    >
-                      <option value="available">🟢 У наявності</option>
-                      <option value="reserved">🟠 Заброньовано</option>
-                      <option value="in_transit">🚚 В дорозі</option>
-                      <option value="sold">✅ Продано</option>
-                    </select>
-                    <div><span className={c.published ? "status-tag pub" : "status-tag pend"}>{c.published ? "Опубліковано" : "На модерації"}</span></div>
-                  </td>
-                  <td className="admin-actions">
-                    <button className="icon-btn small" title={c.published ? "Приховати" : "Опублікувати"} onClick={() => patchCar(c.id, { published: !c.published })}>
-                      {c.published ? <Eye size={15} /> : <Check size={15} />}
-                    </button>
-                    <button className="icon-btn small" title="Видалити" onClick={() => removeCar(c.id)}><Trash2 size={15} /></button>
-                  </td>
-                </tr>
+        <div className="admin-cards-grid">
+          {cars.map((c) => (
+            <div className="admin-car-card" key={c.id}>
+              <div className="admin-car-photo">
+                <img src={c.photos[0]} alt="" />
+                <span className={`admin-status-badge st-${c.status || "available"}`}>
+                  {STATUS_META[c.status || "available"].emoji} {STATUS_META[c.status || "available"].label}
+                </span>
+              </div>
+              <div className="admin-car-body">
+                <div className="admin-car-top">
+                  <h4>{c.brand} {c.model}</h4>
+                  <span className="price">{fmtPrice(c.price)}</span>
+                </div>
+                <div className="admin-car-meta">{c.year} р. · {fmtNum(c.mileage)} км · {c.city}</div>
+                <div className="admin-car-stats">
+                  <span><Eye size={13} /> {c.views}</span>
+                  <span><Heart size={13} /> {(c.favCount ?? 0)}</span>
+                  <span className={c.published ? "status-tag pub" : "status-tag pend"}>{c.published ? "Опубліковано" : "На модерації"}</span>
+                </div>
+                <div className="admin-car-actions">
+                  <button className="btn outline" onClick={() => setStatusModalCarId(c.id)}><RefreshCw size={14} /> Змінити статус</button>
+                  <button className="icon-btn small" title={c.published ? "Приховати" : "Опублікувати"} onClick={() => patchCar(c.id, { published: !c.published })}>
+                    {c.published ? <Eye size={15} /> : <Check size={15} />}
+                  </button>
+                  <button className="icon-btn small" title="Видалити" onClick={() => removeCar(c.id)}><Trash2 size={15} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {cars.length === 0 && <div className="empty-state">Оголошень поки немає.</div>}
+        </div>
+      )}
+
+      {statusModalCarId && (
+        <div className="lightbox" onClick={() => setStatusModalCarId(null)}>
+          <div className="confirm-modal status-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Змінити статус автомобіля</h3>
+            <div className="status-modal-options">
+              {Object.entries(STATUS_META).map(([key, meta]) => (
+                <button
+                  key={key}
+                  className={`status-opt st-${key}`}
+                  onClick={() => {
+                    if (key === "sold") { setConfirmSoldId(statusModalCarId); setStatusModalCarId(null); }
+                    else { patchCar(statusModalCarId, { status: key }); setStatusModalCarId(null); toast("Статус оновлено"); }
+                  }}
+                >
+                  {meta.emoji} {meta.label}
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+            <button className="link-btn" style={{ marginTop: 14 }} onClick={() => setStatusModalCarId(null)}>Скасувати</button>
+          </div>
         </div>
       )}
 
@@ -2337,6 +2361,28 @@ export default function AvtoMixApp() {
         .tab { background: none; border: none; padding: 10px 16px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
         .tab.active { color: var(--accent); border-color: var(--accent); }
         .admin-table-wrap { overflow-x: auto; }
+        .admin-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+        .admin-car-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+        .admin-car-photo { position: relative; height: 150px; }
+        .admin-car-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .admin-status-badge { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(6px); }
+        .admin-status-badge.st-available { background: rgba(62,203,106,0.85); color: #052b12; }
+        .admin-status-badge.st-reserved { background: rgba(245,166,35,0.9); color: #241800; }
+        .admin-status-badge.st-in_transit { background: rgba(46,124,246,0.88); color: #04122c; }
+        .admin-status-badge.st-sold { background: rgba(255,122,26,0.9); color: #241000; }
+        .admin-car-body { padding: 14px 16px 16px; }
+        .admin-car-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+        .admin-car-top h4 { font-size: 15px; margin: 0; }
+        .admin-car-top .price { font-family: var(--font-mono); color: var(--accent); font-size: 13.5px; white-space: nowrap; }
+        .admin-car-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .admin-car-stats { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+        .admin-car-stats span { display: flex; align-items: center; gap: 4px; }
+        .admin-car-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+        .admin-car-actions .btn.outline { flex: 1; justify-content: center; padding: 9px 10px; font-size: 12.5px; }
+        .status-modal { max-width: 340px; }
+        .status-modal-options { display: flex; flex-direction: column; gap: 8px; }
+        .status-opt { display: flex; align-items: center; gap: 8px; justify-content: flex-start; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-alt); color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; }
+        .status-opt:hover { border-color: var(--accent); }
         .admin-table { width: 100%; border-collapse: collapse; min-width: 640px; }
         .admin-table th { text-align: left; font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); padding: 8px 12px; border-bottom: 1px solid var(--border); }
         .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; }
