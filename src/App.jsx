@@ -149,6 +149,18 @@ function SocialIcon({ href, label, children }) {
 function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, setMenuOpen, social, favCount, cmpCount, toast, session, profile, onLogout }) {
   const isAdmin = !supabaseReady || profile?.role === "admin";
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const onClick = (e) => { if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [profileOpen]);
+
+  const initial = (profile?.email || session?.user?.email || "?").charAt(0).toUpperCase();
+
   return (
     <header className="header">
       <div className="header-main">
@@ -174,11 +186,28 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label="Перемкнути тему">
             {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
           </button>
-          {canPublish && (
-            <button className="btn ghost desktop-only" onClick={() => setView("cabinet")}><LayoutDashboard size={14} /> Мій кабінет</button>
-          )}
+
           {session ? (
-            <button className="btn ghost desktop-only" onClick={onLogout}><LogOut size={14} /> Вийти</button>
+            <div className="profile-menu-wrap desktop-only" ref={profileRef}>
+              <button className="profile-avatar-btn" onClick={() => setProfileOpen((o) => !o)} aria-label="Профіль">
+                <span className="profile-avatar">{initial}</span>
+              </button>
+              {profileOpen && (
+                <div className="profile-dropdown">
+                  <div className="profile-dropdown-email">{profile?.email || session?.user?.email}</div>
+                  <div className="profile-dropdown-sep" />
+                  {canPublish && (
+                    <button onClick={() => { setView("cabinet"); setProfileOpen(false); }}><LayoutDashboard size={15} /> Мій кабінет</button>
+                  )}
+                  {isAdmin && (
+                    <button onClick={() => { setView("admin"); setProfileOpen(false); }}><ShieldCheck size={15} /> Адмін-панель</button>
+                  )}
+                  <button onClick={() => { setView("favorites"); setProfileOpen(false); }}><Heart size={15} /> Обране ({favCount})</button>
+                  <div className="profile-dropdown-sep" />
+                  <button onClick={() => { onLogout(); setProfileOpen(false); }} className="danger"><LogOut size={15} /> Вийти</button>
+                </div>
+              )}
+            </div>
           ) : (
             <button className="btn ghost desktop-only" onClick={() => setView(supabaseReady ? "auth" : "home")}>
               {supabaseReady ? <><LogIn size={14} /> Увійти</> : "Увійти"}
@@ -2172,6 +2201,15 @@ export default function AvtoMixApp() {
         .search-ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #9a9a9a; }
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .theme-toggle { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: var(--header-text); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .profile-menu-wrap { position: relative; }
+        .profile-avatar-btn { background: none; border: none; padding: 0; cursor: pointer; }
+        .profile-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+        .profile-dropdown { position: absolute; top: calc(100% + 10px); right: 0; min-width: 220px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,0.35); padding: 8px; z-index: 200; display: flex; flex-direction: column; }
+        .profile-dropdown-email { font-size: 12.5px; color: var(--text-muted); padding: 8px 10px 4px; word-break: break-all; }
+        .profile-dropdown-sep { height: 1px; background: var(--border); margin: 6px 4px; }
+        .profile-dropdown button { display: flex; align-items: center; gap: 10px; background: none; border: none; padding: 10px; border-radius: 8px; font-size: 14px; color: var(--text); cursor: pointer; text-align: left; }
+        .profile-dropdown button:hover { background: var(--bg-alt); }
+        .profile-dropdown button.danger { color: #ff5a5a; }
         .mobile-menu { background: var(--header-bg); border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
         .mobile-menu .nav-link { text-align: left; }
         @media (max-width: 640px) {
