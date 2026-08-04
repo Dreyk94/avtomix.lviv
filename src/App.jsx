@@ -174,6 +174,9 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label="Перемкнути тему">
             {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
           </button>
+          {canPublish && (
+            <button className="btn ghost desktop-only" onClick={() => setView("cabinet")}><LayoutDashboard size={14} /> Мій кабінет</button>
+          )}
           {session ? (
             <button className="btn ghost desktop-only" onClick={onLogout}><LogOut size={14} /> Вийти</button>
           ) : (
@@ -201,6 +204,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <div className="mobile-menu-sep" />
           <button className="nav-link" onClick={() => { setView("favorites"); setMenuOpen(false); }}>Обране ({favCount})</button>
           <button className="nav-link" onClick={() => { setView("compare"); setMenuOpen(false); }}>Порівняння ({cmpCount})</button>
+          {canPublish && <button className="nav-link" onClick={() => { setView("cabinet"); setMenuOpen(false); }}>Мій кабінет</button>}
           {isAdmin && <button className="nav-link" onClick={() => { setView("admin"); setMenuOpen(false); }}>Адмін-панель</button>}
           {session ? (
             <button className="btn ghost" onClick={() => { onLogout(); setMenuOpen(false); }}><LogOut size={14} /> Вийти</button>
@@ -1745,6 +1749,128 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
   );
 }
 
+function MyCabinetView({ cars, session, profile, toast, updateCar, deleteCar, setView }) {
+  const myCars = cars.filter((c) => c.ownerId && session && c.ownerId === session.user.id);
+  const [statusModalCarId, setStatusModalCarId] = useState(null);
+  const [confirmSoldId, setConfirmSoldId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+  const patchCar = (id, patch) => updateCar && updateCar(id, patch);
+  const removeCar = (id) => {
+    if (deleteCar) deleteCar(id);
+    setConfirmDeleteId(null);
+    toast("Оголошення видалено");
+  };
+
+  const stats = {
+    total: myCars.length,
+    active: myCars.filter((c) => c.published && (c.status === "available" || c.status === "reserved" || !c.status)).length,
+    sold: myCars.filter((c) => c.status === "sold").length,
+    views: myCars.reduce((s, c) => s + (c.views || 0), 0)
+  };
+
+  return (
+    <div className="page-simple">
+      <h2><LayoutDashboard size={20} style={{ verticalAlign: -3, marginRight: 6 }} />Мій кабінет</h2>
+      <p className="intro-text">Тут ти керуєш лише своїми оголошеннями — змінюєш статус, публікуєш, видаляєш. {profile?.role === "admin" && "У тебе також є доступ до повної адмін-панелі з усіма оголошеннями сайту."}</p>
+
+      <div className="stat-cards">
+        <div className="stat-card"><span>Всього оголошень</span><b>{stats.total}</b></div>
+        <div className="stat-card"><span>Активних</span><b>{stats.active}</b></div>
+        <div className="stat-card"><span>Продано</span><b>{stats.sold}</b></div>
+        <div className="stat-card"><span>Перегляди</span><b>{fmtNum(stats.views)}</b></div>
+      </div>
+
+      <button className="btn primary" style={{ marginBottom: 20 }} onClick={() => setView("submit")}><Plus size={15} /> Подати нове оголошення</button>
+
+      {myCars.length === 0 ? (
+        <div className="empty-state">У тебе поки немає власних оголошень.</div>
+      ) : (
+        <div className="admin-cards-grid">
+          {myCars.map((c) => (
+            <div className="admin-car-card" key={c.id}>
+              <div className="admin-car-photo">
+                <img src={c.photos[0]} alt="" />
+                <span className={`admin-status-badge st-${c.status || "available"}`}>
+                  {STATUS_META[c.status || "available"].emoji} {STATUS_META[c.status || "available"].label}
+                </span>
+              </div>
+              <div className="admin-car-body">
+                <div className="admin-car-top">
+                  <h4>{c.brand} {c.model}</h4>
+                  <span className="price">{fmtPrice(c.price)}</span>
+                </div>
+                <div className="admin-car-meta">{c.year} р. · {fmtNum(c.mileage)} км · {c.city}</div>
+                <div className="admin-car-stats">
+                  <span><Eye size={13} /> {c.views}</span>
+                  <span className={c.published ? "status-tag pub" : "status-tag pend"}>{c.published ? "Опубліковано" : "На модерації"}</span>
+                </div>
+                <div className="admin-car-actions">
+                  <button className="btn outline" onClick={() => setStatusModalCarId(c.id)}><RefreshCw size={14} /> Змінити статус</button>
+                  <button className="icon-btn small" title="Видалити" onClick={() => setConfirmDeleteId(c.id)}><Trash2 size={15} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {statusModalCarId && (
+        <div className="lightbox" onClick={() => setStatusModalCarId(null)}>
+          <div className="confirm-modal status-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Змінити статус автомобіля</h3>
+            <div className="status-modal-options">
+              {Object.entries(STATUS_META).map(([key, meta]) => (
+                <button
+                  key={key}
+                  className={`status-opt st-${key}`}
+                  onClick={() => {
+                    if (key === "sold") { setConfirmSoldId(statusModalCarId); setStatusModalCarId(null); }
+                    else { patchCar(statusModalCarId, { status: key }); setStatusModalCarId(null); toast("Статус оновлено"); }
+                  }}
+                >
+                  {meta.emoji} {meta.label}
+                </button>
+              ))}
+            </div>
+            <button className="link-btn" style={{ marginTop: 14 }} onClick={() => setStatusModalCarId(null)}>Скасувати</button>
+          </div>
+        </div>
+      )}
+
+      {confirmSoldId && (
+        <div className="lightbox" onClick={() => setConfirmSoldId(null)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Ви дійсно продали цей автомобіль?</h3>
+            <div className="confirm-modal-actions">
+              <button
+                className="btn primary"
+                onClick={() => { patchCar(confirmSoldId, { status: "sold", soldAt: Date.now() }); setConfirmSoldId(null); toast("Автомобіль позначено як проданий"); }}
+              >
+                Так, автомобіль продано
+              </button>
+              <button className="btn outline" onClick={() => setConfirmSoldId(null)}>Скасувати</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDeleteId && (
+        <div className="lightbox" onClick={() => setConfirmDeleteId(null)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Видалити це оголошення?</h3>
+            <p style={{ color: "var(--text-muted)", marginBottom: 16 }}>Цю дію не можна скасувати.</p>
+            <div className="confirm-modal-actions">
+              <button className="btn primary" onClick={() => removeCar(confirmDeleteId)}>Так, видалити</button>
+              <button className="btn outline" onClick={() => setConfirmDeleteId(null)}>Скасувати</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Footer({ social, setView }) {
   return (
     <footer className="footer">
@@ -1803,6 +1929,7 @@ export default function AvtoMixApp() {
   const [toast, showToast] = useToast();
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   const [social, setSocial] = useState({
     tiktok: "https://www.tiktok.com/@avtomix",
     telegram: "https://t.me/avtomix_lviv",
@@ -2562,6 +2689,19 @@ export default function AvtoMixApp() {
       {view === "auth" && <AuthView setView={setView} toast={showToast} />}
 
       {view === "submit" && <SubmitListingView addCar={addCar} setView={setView} toast={showToast} session={session} profile={profile} />}
+
+      {view === "cabinet" && (
+        canPublish ? (
+          <MyCabinetView cars={cars} session={session} profile={profile} toast={showToast} updateCar={updateCar} deleteCar={deleteCar} setView={setView} />
+        ) : (
+          <div className="page-simple narrow">
+            <div className="access-gate">
+              <Lock size={22} />
+              <p>Особистий кабінет доступний лише користувачам з правом публікації оголошень. Зверніться до адміністратора сайту, щоб отримати доступ.</p>
+            </div>
+          </div>
+        )
+      )}
 
       {view === "admin" && (
         (!supabaseReady || profile?.role === "admin") ? (
