@@ -133,14 +133,6 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   return (
     <header className="header">
-      <div className="header-top">
-        <div className="header-top-inner">
-          <div className="socials">
-            <SocialIcon href={social.telegram} label="Telegram"><Send size={15} /></SocialIcon>
-            <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={15} /></SocialIcon>
-          </div>
-        </div>
-      </div>
       <div className="header-main">
         <button className="icon-btn mobile-only" onClick={() => setMenuOpen(!menuOpen)} aria-label="Меню">
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -2083,7 +2075,10 @@ export default function AvtoMixApp() {
         .vin-input { flex: 1; min-width: 220px; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
         .bidfax-highlight { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
         .features-row-wrap { padding-top: 28px; padding-bottom: 6px; }
-        .features-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+        .features-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+        @media (max-width: 1100px) { .features-row { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 700px) { .features-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 460px) { .features-row { grid-template-columns: 1fr; } }
         .feature-card { display: flex; gap: 14px; align-items: flex-start; padding: 20px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
         .feature-card.clickable { cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
         .feature-card.clickable:hover { transform: translateY(-3px); border-color: var(--accent); }
