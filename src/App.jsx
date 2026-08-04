@@ -146,7 +146,7 @@ function SocialIcon({ href, label, children }) {
   );
 }
 
-function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, setMenuOpen, social, favCount, cmpCount, toast, session, profile, onLogout }) {
+function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, setMenuOpen, social, favCount, cmpCount, toast, session, profile, onLogout, setCabinetTab }) {
   const isAdmin = !supabaseReady || profile?.role === "admin";
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   const [profileOpen, setProfileOpen] = useState(false);
@@ -159,7 +159,6 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
     return () => document.removeEventListener("mousedown", onClick);
   }, [profileOpen]);
 
-  const initial = (profile?.email || session?.user?.email || "?").charAt(0).toUpperCase();
 
   return (
     <header className="header">
@@ -190,14 +189,20 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           {session ? (
             <div className="profile-menu-wrap desktop-only" ref={profileRef}>
               <button className="profile-avatar-btn" onClick={() => setProfileOpen((o) => !o)} aria-label="Профіль">
-                <span className="profile-avatar">{initial}</span>
+                <span className="profile-avatar"><User size={19} /></span>
               </button>
               {profileOpen && (
                 <div className="profile-dropdown">
                   <div className="profile-dropdown-email">{profile?.email || session?.user?.email}</div>
                   <div className="profile-dropdown-sep" />
                   {canPublish && (
-                    <button onClick={() => { setView("cabinet"); setProfileOpen(false); }}><LayoutDashboard size={15} /> Мій кабінет</button>
+                    <button onClick={() => { setCabinetTab("all"); setView("cabinet"); setProfileOpen(false); }}><LayoutDashboard size={15} /> Мій кабінет</button>
+                  )}
+                  {canPublish && (
+                    <button onClick={() => { setCabinetTab("active"); setView("cabinet"); setProfileOpen(false); }}><FileText size={15} /> Мої оголошення</button>
+                  )}
+                  {canPublish && (
+                    <button onClick={() => { setCabinetTab("sold"); setView("cabinet"); setProfileOpen(false); }}><CheckCircle2 size={15} /> Продані авто</button>
                   )}
                   {isAdmin && (
                     <button onClick={() => { setView("admin"); setProfileOpen(false); }}><ShieldCheck size={15} /> Адмін-панель</button>
@@ -272,6 +277,31 @@ function FeaturesRow({ setView }) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function RecentSales({ cars, setView, openCar }) {
+  const sold = cars.filter((c) => c.status === "sold").sort((a, b) => (b.soldAt || 0) - (a.soldAt || 0)).slice(0, 6);
+  if (sold.length === 0) return null;
+  return (
+    <div className="page-simple recent-sales-wrap">
+      <div className="section-head-row">
+        <h2 className="section-title">Останні успішні продажі</h2>
+        <button className="link-btn" onClick={() => setView("catalog")}>Всі продані авто <ChevronRight size={14} /></button>
+      </div>
+      <div className="recent-sales-row">
+        {sold.map((c) => (
+          <div key={c.id} className="recent-sale-card" onClick={() => openCar(c.id)}>
+            <img src={c.photos[0]} alt={`${c.brand} ${c.model}`} />
+            <div className="recent-sale-body">
+              <b>{c.brand} {c.model} {c.year}</b>
+              <span className="recent-sale-price">{fmtPrice(c.price)}</span>
+              <span className="recent-sale-tag"><CheckCircle2 size={12} /> {fmtSoldDate(c.soldAt)}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1778,11 +1808,14 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
   );
 }
 
-function MyCabinetView({ cars, session, profile, toast, updateCar, deleteCar, setView }) {
+function MyCabinetView({ cars, session, profile, toast, updateCar, deleteCar, setView, initialTab }) {
   const myCars = cars.filter((c) => c.ownerId && session && c.ownerId === session.user.id);
   const [statusModalCarId, setStatusModalCarId] = useState(null);
   const [confirmSoldId, setConfirmSoldId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [cabTab, setCabTab] = useState(initialTab || "all");
+
+  useEffect(() => { if (initialTab) setCabTab(initialTab); }, [initialTab]);
 
   const patchCar = (id, patch) => updateCar && updateCar(id, patch);
   const removeCar = (id) => {
@@ -1791,12 +1824,22 @@ function MyCabinetView({ cars, session, profile, toast, updateCar, deleteCar, se
     toast("Оголошення видалено");
   };
 
+  const activeCars = myCars.filter((c) => c.published && (c.status === "available" || c.status === "reserved" || !c.status));
+  const soldCars = myCars.filter((c) => c.status === "sold");
+  const draftCars = myCars.filter((c) => !c.published && c.status !== "sold");
+
+  const soldDurations = soldCars.filter((c) => c.soldAt && c.createdAt).map((c) => (c.soldAt - c.createdAt) / 86400000);
+  const avgSellDays = soldDurations.length ? Math.round(soldDurations.reduce((s, d) => s + d, 0) / soldDurations.length) : null;
+  const favoritesTotal = myCars.reduce((s, c) => s + (c.favCount ?? 0), 0);
+
   const stats = {
     total: myCars.length,
-    active: myCars.filter((c) => c.published && (c.status === "available" || c.status === "reserved" || !c.status)).length,
-    sold: myCars.filter((c) => c.status === "sold").length,
+    active: activeCars.length,
+    sold: soldCars.length,
     views: myCars.reduce((s, c) => s + (c.views || 0), 0)
   };
+
+  const shown = cabTab === "active" ? activeCars : cabTab === "sold" ? soldCars : cabTab === "draft" ? draftCars : myCars;
 
   return (
     <div className="page-simple">
@@ -1808,15 +1851,24 @@ function MyCabinetView({ cars, session, profile, toast, updateCar, deleteCar, se
         <div className="stat-card"><span>Активних</span><b>{stats.active}</b></div>
         <div className="stat-card"><span>Продано</span><b>{stats.sold}</b></div>
         <div className="stat-card"><span>Перегляди</span><b>{fmtNum(stats.views)}</b></div>
+        <div className="stat-card"><span>Середній час продажу</span><b>{avgSellDays !== null ? `${avgSellDays} дн.` : "—"}</b></div>
+        <div className="stat-card"><span>Збережень в обране</span><b>{favoritesTotal}</b></div>
       </div>
 
       <button className="btn primary" style={{ marginBottom: 20 }} onClick={() => setView("submit")}><Plus size={15} /> Подати нове оголошення</button>
 
-      {myCars.length === 0 ? (
-        <div className="empty-state">У тебе поки немає власних оголошень.</div>
+      <div className="admin-quick-filters">
+        <button className={cabTab === "all" ? "tab active" : "tab"} onClick={() => setCabTab("all")}>Всі ({myCars.length})</button>
+        <button className={cabTab === "active" ? "tab active" : "tab"} onClick={() => setCabTab("active")}>🟢 Активні ({activeCars.length})</button>
+        <button className={cabTab === "sold" ? "tab active" : "tab"} onClick={() => setCabTab("sold")}>🟠 Продано ({soldCars.length})</button>
+        <button className={cabTab === "draft" ? "tab active" : "tab"} onClick={() => setCabTab("draft")}>🔴 Чернетки / на модерації ({draftCars.length})</button>
+      </div>
+
+      {shown.length === 0 ? (
+        <div className="empty-state">Немає оголошень у цій категорії.</div>
       ) : (
         <div className="admin-cards-grid">
-          {myCars.map((c) => (
+          {shown.map((c) => (
             <div className="admin-car-card" key={c.id}>
               <div className="admin-car-photo">
                 <img src={c.photos[0]} alt="" />
@@ -1958,6 +2010,7 @@ export default function AvtoMixApp() {
   const [toast, showToast] = useToast();
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [cabinetTab, setCabinetTab] = useState("all");
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   const [social, setSocial] = useState({
     tiktok: "https://www.tiktok.com/@avtomix",
@@ -2429,6 +2482,16 @@ export default function AvtoMixApp() {
         .breadcrumb { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
         .breadcrumb span:last-child { color: var(--text); }
         .section-title { font-size: 26px; margin: 0 0 4px; }
+        .section-head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+        .recent-sales-wrap { padding-top: 8px; }
+        .recent-sales-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 18px; }
+        .recent-sale-card { border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); cursor: pointer; transition: transform 0.15s ease; }
+        .recent-sale-card:hover { transform: translateY(-3px); }
+        .recent-sale-card img { width: 100%; height: 120px; object-fit: cover; display: block; }
+        .recent-sale-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+        .recent-sale-body b { font-size: 14px; }
+        .recent-sale-price { color: var(--text-muted); font-size: 13px; }
+        .recent-sale-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--accent); font-weight: 600; margin-top: 4px; }
 
         .ins-hero { position: relative; overflow: hidden; border-radius: 20px; margin: 20px 24px 0; }
         .ins-hero-bg { position: absolute; inset: -10px; background-size: cover; background-position: center 30%; animation: kenburns 16s ease-in-out infinite alternate; }
@@ -2525,6 +2588,7 @@ export default function AvtoMixApp() {
         .admin-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
         .tab { background: none; border: none; padding: 10px 16px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
         .tab.active { color: var(--accent); border-color: var(--accent); }
+        .admin-quick-filters { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
         .admin-table-wrap { overflow-x: auto; }
         .admin-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
         .admin-car-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
@@ -2685,7 +2749,7 @@ export default function AvtoMixApp() {
 
       <Header theme={theme} setTheme={setTheme} view={view} setView={setView} query={query} setQuery={setQuery}
         menuOpen={menuOpen} setMenuOpen={setMenuOpen} social={social} favCount={favorites.length} cmpCount={compareList.length} toast={showToast}
-        session={session} profile={profile} onLogout={onLogout} />
+        session={session} profile={profile} onLogout={onLogout} setCabinetTab={setCabinetTab} />
 
       {view === "home" && (
         <>
@@ -2693,6 +2757,7 @@ export default function AvtoMixApp() {
           <FeaturesRow setView={setView} />
           <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
             compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen} toast={showToast} />
+          <RecentSales cars={cars} setView={setView} openCar={openCar} />
           <PromoBanners setView={setView} />
         </>
       )}
@@ -2730,7 +2795,7 @@ export default function AvtoMixApp() {
 
       {view === "cabinet" && (
         canPublish ? (
-          <MyCabinetView cars={cars} session={session} profile={profile} toast={showToast} updateCar={updateCar} deleteCar={deleteCar} setView={setView} />
+          <MyCabinetView cars={cars} session={session} profile={profile} toast={showToast} updateCar={updateCar} deleteCar={deleteCar} setView={setView} initialTab={cabinetTab} />
         ) : (
           <div className="page-simple narrow">
             <div className="access-gate">
