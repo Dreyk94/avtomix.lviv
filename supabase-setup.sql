@@ -17,6 +17,20 @@ create policy "Users can read own profile"
   on public.profiles for select
   using (auth.uid() = id);
 
+-- Адміністратор бачить усі профілі (потрібно для сторінки "Користувачі")
+create policy "Admins can read all profiles"
+  on public.profiles for select
+  using (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
+
+-- Адміністратор може змінювати роль будь-якого користувача
+create policy "Admins can update any profile"
+  on public.profiles for update
+  using (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
+
 -- Автоматично створює профіль з роллю "user" при реєстрації нового акаунта
 create or replace function public.handle_new_user()
 returns trigger
@@ -45,6 +59,11 @@ create table public.cars (
   whatsapp text, tiktok_url text, photos text[] default '{}',
   published boolean not null default false,
   views int not null default 0,
+  status text not null default 'available' check (status in ('available','reserved','in_transit','sold')),
+  transit_stage int default 0,
+  origin_country text,
+  eta_label text,
+  sold_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -102,5 +121,36 @@ create policy "Authenticated users can upload car photos"
 -- 2. У Supabase зайдіть в Table Editor -> profiles -> знайдіть свій рядок
 --    -> змініть значення role на 'admin' -> Save
 -- 3. Щоб дозволити комусь публікувати оголошення — так само зміните
---    його role на 'publisher'
+--    його role на 'publisher' (або зробіть це прямо на сайті,
+--    в Адмін-панелі -> вкладка "Користувачі", після виконання міграції нижче)
 -- ============================================================
+
+-- ============================================================
+-- МІГРАЦІЯ. Якщо таблиці profiles/cars вже були створені раніше
+-- (до цієї версії), виконайте окремо весь блок нижче в SQL Editor.
+-- Команди безпечні для повторного запуску.
+-- ============================================================
+
+-- Статус оголошення (наявність / бронь / в дорозі / продано) та дата продажу
+alter table public.cars add column if not exists status text not null default 'available';
+alter table public.cars add column if not exists transit_stage int default 0;
+alter table public.cars add column if not exists origin_country text;
+alter table public.cars add column if not exists eta_label text;
+alter table public.cars add column if not exists sold_at timestamptz;
+alter table public.cars drop constraint if exists cars_status_check;
+alter table public.cars add constraint cars_status_check check (status in ('available','reserved','in_transit','sold'));
+
+-- Керування користувачами з адмін-панелі сайту (вкладка "Користувачі")
+drop policy if exists "Admins can read all profiles" on public.profiles;
+create policy "Admins can read all profiles"
+  on public.profiles for select
+  using (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
+
+drop policy if exists "Admins can update any profile" on public.profiles;
+create policy "Admins can update any profile"
+  on public.profiles for update
+  using (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  );
