@@ -1662,6 +1662,77 @@ function AuthView({ setView, toast }) {
   );
 }
 
+const ROLE_META = {
+  user: { label: "Користувач", color: "#96959D" },
+  publisher: { label: "Публікатор", color: "#3ecb6a" },
+  admin: { label: "Адміністратор", color: "#FF6B1A" }
+};
+
+function AdminUsersTab({ toast }) {
+  const [users, setUsers] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [savingId, setSavingId] = useState(null);
+
+  useEffect(() => {
+    if (!supabaseReady) { setLoadError("no-supabase"); return; }
+    supabase.from("profiles").select("*").order("created_at", { ascending: false }).then(({ data, error }) => {
+      if (error) { setLoadError(error.message); return; }
+      setUsers(data);
+    });
+  }, []);
+
+  const changeRole = async (id, role) => {
+    setSavingId(id);
+    const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
+    setSavingId(null);
+    if (error) { toast("Не вдалося змінити роль: " + error.message); return; }
+    setUsers((us) => us.map((u) => (u.id === id ? { ...u, role } : u)));
+    toast("Роль оновлено");
+  };
+
+  if (!supabaseReady) {
+    return <div className="empty-state">Керування користувачами доступне лише після підключення Supabase.</div>;
+  }
+  if (loadError && loadError !== "no-supabase") {
+    return (
+      <div className="empty-state">
+        Не вдалося завантажити список користувачів ({loadError}).<br />
+        Найімовірніше, у Supabase ще не додана політика, яка дозволяє адміну бачити всі профілі — див. інструкцію в кінці supabase-setup.sql.
+      </div>
+    );
+  }
+  if (!users) return <div className="empty-state">Завантаження...</div>;
+
+  return (
+    <div className="admin-table-wrap">
+      <table className="admin-table">
+        <thead><tr><th>Email</th><th>Роль</th><th>Зареєстрований</th><th>Дії</th></tr></thead>
+        <tbody>
+          {users.map((u) => (
+            <tr key={u.id}>
+              <td>{u.email}</td>
+              <td><span className="status-tag" style={{ background: `color-mix(in srgb, ${ROLE_META[u.role]?.color || "#999"} 18%, transparent)`, color: ROLE_META[u.role]?.color }}>{ROLE_META[u.role]?.label || u.role}</span></td>
+              <td>{u.created_at ? new Date(u.created_at).toLocaleDateString("uk-UA") : "—"}</td>
+              <td>
+                <select
+                  value={u.role}
+                  disabled={savingId === u.id}
+                  onChange={(e) => changeRole(u.id, e.target.value)}
+                  style={{ maxWidth: 180 }}
+                >
+                  <option value="user">Користувач</option>
+                  <option value="publisher">Публікатор (може подавати оголошення)</option>
+                  <option value="admin">Адміністратор (повний доступ)</option>
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast, updateCar, deleteCar }) {
   const [tab, setTab] = useState("listings");
   const [confirmSoldId, setConfirmSoldId] = useState(null);
@@ -1693,9 +1764,12 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
 
       <div className="admin-tabs">
         <button className={tab === "listings" ? "tab active" : "tab"} onClick={() => setTab("listings")}>Оголошення</button>
+        <button className={tab === "users" ? "tab active" : "tab"} onClick={() => setTab("users")}>Користувачі</button>
         <button className={tab === "banner" ? "tab active" : "tab"} onClick={() => setTab("banner")}>Банер</button>
         <button className={tab === "contacts" ? "tab active" : "tab"} onClick={() => setTab("contacts")}>Контакти та соцмережі</button>
       </div>
+
+      {tab === "users" && <AdminUsersTab toast={toast} />}
 
       {tab === "listings" && (
         <div className="admin-cards-grid">
