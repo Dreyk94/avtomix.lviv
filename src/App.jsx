@@ -1365,24 +1365,15 @@ function TradeInView({ toast }) {
 function ContactsView({ social, toast }) {
   return (
     <div className="contacts-page">
-      <div className="contacts-hero" style={{ backgroundImage: "url(/contacts-hero.png)" }}>
+      <div className="contacts-hero contacts-hero-tall" style={{ backgroundImage: "url(/contacts-hero.png)" }}>
         <div className="contacts-hero-overlay" />
         <div className="page-simple contacts-hero-inner">
           <h1>Контакти</h1>
           <p>Ми завжди на зв'язку.</p>
           <p>Допоможемо підібрати автомобіль, оформити страхування або відповісти на будь-які питання.</p>
-          <a className="btn primary lg" href="tel:+380976233145" style={{ marginTop: 18, width: "fit-content" }}><Phone size={16} /> Зателефонувати</a>
-        </div>
-      </div>
 
-      <div className="page-simple">
-        <div className="contacts-photo-strip" style={{ backgroundImage: "url(/contacts-hero.png)" }} />
-      </div>
-
-      <div className="page-simple">
-        <div className="contacts-cards-row">
-          <div className="contact-card">
-            <h3>Наші контакти</h3>
+          <div className="contact-card contact-card-overlay">
+            <h3>Зв'яжіться з нами</h3>
 
             <div className="contact-card-row">
               <div className="contact-card-icon"><Phone size={18} /></div>
@@ -1421,9 +1412,13 @@ function ContactsView({ social, toast }) {
               <a className="btn outline lg" href="https://www.google.com/maps/dir/?api=1&destination=49.8122096,24.1435555" target="_blank" rel="noreferrer"><Navigation size={16} /> Побудувати маршрут</a>
             </div>
           </div>
+        </div>
+      </div>
 
+      <div className="page-simple">
+        <div className="contacts-cards-row single">
           <div className="contact-card">
-            <h3>Зв'яжіться з нами</h3>
+            <h3>Чому AvtoMix</h3>
             <div className="contact-card-row">
               <div className="contact-card-icon"><Phone size={18} /></div>
               <div>
@@ -2758,13 +2753,16 @@ export default function AvtoMixApp() {
         .tradein-step p { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
         .step-num { background: var(--accent); color: var(--accent-text); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 600; font-size: 13px; flex-shrink: 0; }
         .contacts-hero { position: relative; height: 260px; overflow: hidden; background-size: cover; background-position: center; }
-        .contacts-hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,11,15,0.55), rgba(10,11,15,0.92)); }
-        .contacts-hero-inner { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; color: #fff; padding-top: 0; padding-bottom: 0; }
+        .contacts-hero-tall { height: 640px; background-position: center 25%; }
+        .contacts-hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,11,15,0.35) 0%, rgba(10,11,15,0.55) 45%, rgba(10,11,15,0.97) 100%); }
+        .contacts-hero-inner { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 60px; color: #fff; }
+        .contact-card-overlay { margin-top: 30px; max-width: 620px; }
         .contacts-hero-inner h1 { font-size: 34px; margin: 0 0 6px; }
         .contacts-hero-inner p { margin: 0; color: #d8d8dc; }
         .contacts-hero-inner p + p { margin-top: 6px; max-width: 480px; }
         .contacts-photo-strip { height: 130px; border-radius: 16px; background-size: cover; background-position: center 70%; }
         .contacts-cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; align-items: start; }
+        .contacts-cards-row.single { grid-template-columns: 1fr; max-width: 640px; }
         @media (max-width: 760px) { .contacts-cards-row { grid-template-columns: 1fr; } }
         .map-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 30px; margin-bottom: 14px; }
         .contact-card {
