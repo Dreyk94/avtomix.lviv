@@ -266,8 +266,7 @@ function FeaturesRow({ setView }) {
     { icon: Award, title: "500+", text: "проданих авто", sub: "Довіра клієнтів, підтверджена результатом." },
     { icon: ShieldCheck, title: "VIN-перевірка", sub: "Перевіряйте історію автомобіля перед покупкою.", view: "vin" },
     { icon: RefreshCw, title: "Trade-In", sub: "Обміняйте старий автомобіль на новий.", view: "tradein" },
-    { icon: Umbrella, title: "Страхування авто", sub: "Оформлення ОСЦПВ, Зеленої карти та ДЦВ.", view: "insurance" },
-    { icon: MapPin, title: "Львів та область", sub: "Автомобілі від власників і автосалонів у Львові." }
+    { icon: Umbrella, title: "Страхування авто", sub: "Оформлення ОСЦПВ, Зеленої карти та ДЦВ.", view: "insurance" }
   ];
   return (
     <div className="page-simple features-row-wrap">
@@ -1377,16 +1376,16 @@ function ContactsView({ social, toast }) {
       <h2>Контакти</h2>
       <div className="contacts-grid">
         <div className="contacts-info">
-          <div className="contact-row"><MapPin size={16} /> м. Львів, вул. Автомобільна, 12</div>
-          <div className="contact-row"><Phone size={16} /> <a href="tel:+380631234567">+380 63 123 45 67</a></div>
-          <div className="contact-row"><Send size={16} /> Пн–Сб: 9:00–19:00, Нд: вихідний</div>
+          <div className="contact-row"><MapPin size={16} /> м. Винники</div>
+          <div className="contact-row"><Phone size={16} /> <a href="tel:+380976233145">+380 97 623 31 45</a></div>
+          <div className="contact-row"><Phone size={16} /> <a href="tel:+380639388106">+380 63 938 81 06</a></div>
           <div className="socials" style={{ marginTop: 14 }}>
             <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={16} /></SocialIcon>
             <SocialIcon href={social.telegram} label="Telegram"><Send size={16} /></SocialIcon>
             <SocialIcon href={social.viber} label="Viber"><Phone size={16} /></SocialIcon>
             <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={16} /></SocialIcon>
           </div>
-          <div className="map-placeholder"><MapPin size={22} /><span>Карта проїзду</span></div>
+          <a className="map-placeholder" href="https://maps.app.goo.gl/uqLGf1hFvu6GxMfV9" target="_blank" rel="noreferrer"><MapPin size={22} /><span>Переглянути на карті</span></a>
         </div>
         <form className="form-section contact-form" onSubmit={submit}>
           <h4>Написати нам</h4>
@@ -2087,9 +2086,10 @@ function Footer({ social, setView }) {
 
         <div className="footer-col">
           <h5>Зв'яжіться з нами</h5>
-          <p className="footer-contact-line"><Phone size={14} /> +38 (093) 123 45 67</p>
+          <p className="footer-contact-line"><Phone size={14} /> +380 97 623 31 45</p>
+          <p className="footer-contact-line"><Phone size={14} /> +380 63 938 81 06</p>
           <p className="footer-contact-line"><Send size={14} /> info@avtomix.lviv.ua</p>
-          <p className="footer-contact-line"><MapPin size={14} /> м. Львів, вул. Зелена, 147</p>
+          <p className="footer-contact-line"><MapPin size={14} /> м. Винники</p>
         </div>
       </div>
       <p className="copyright">© {new Date().getFullYear()} AvtoMix. Усі права захищені.</p>
@@ -2113,7 +2113,7 @@ export default function AvtoMixApp() {
   const [cabinetTab, setCabinetTab] = useState("all");
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   const [social, setSocial] = useState({
-    tiktok: "https://www.tiktok.com/@avtomix",
+    tiktok: "https://www.tiktok.com/@romantaras777",
     telegram: "https://t.me/avtomix_lviv",
     viber: "viber://chat?number=%2B380631234567",
     whatsapp: "https://wa.me/380631234567"
@@ -2567,9 +2567,8 @@ export default function AvtoMixApp() {
         .vin-input { flex: 1; min-width: 220px; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
         .bidfax-highlight { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
         .features-row-wrap { padding-top: 28px; padding-bottom: 6px; }
-        .features-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-        @media (max-width: 1100px) { .features-row { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 700px) { .features-row { grid-template-columns: repeat(2, 1fr); } }
+        .features-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+        @media (max-width: 1100px) { .features-row { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 460px) { .features-row { grid-template-columns: 1fr; } }
         .feature-card { display: flex; gap: 14px; align-items: flex-start; padding: 20px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
         .feature-card.clickable { cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
