@@ -1416,7 +1416,7 @@ function ContactsView({ social, toast }) {
       </div>
 
       <div className="page-simple">
-        <div className="contacts-cards-row single">
+        <div className="contacts-cards-row">
           <div className="contact-card">
             <h3>Чому AvtoMix</h3>
             <div className="contact-card-row">
@@ -1441,26 +1441,25 @@ function ContactsView({ social, toast }) {
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="map-section-head">
-          <div>
-            <h3 style={{ margin: 0 }}>Як нас знайти</h3>
-            <p style={{ margin: "4px 0 0", color: "var(--text-muted)" }}>м. Винники</p>
+          <div className="contact-card map-card">
+            <div className="map-section-head">
+              <h3 style={{ margin: 0 }}>Як нас знайти</h3>
+              <a className="btn outline sm" href="https://www.google.com/maps/place/49.8122096,24.1435555" target="_blank" rel="noreferrer">
+                <ExternalLink size={14} /> Google Maps
+              </a>
+            </div>
+            <p style={{ margin: "0 0 14px", color: "var(--text-muted)", fontSize: 13.5 }}>м. Винники</p>
+            <div className="map-embed-wrap">
+              <iframe
+                className="map-embed"
+                src="https://www.google.com/maps?q=49.8122096,24.1435555&z=15&output=embed"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="AvtoMix на карті"
+              />
+            </div>
           </div>
-          <a className="btn outline" href="https://www.google.com/maps/place/49.8122096,24.1435555" target="_blank" rel="noreferrer">
-            <ExternalLink size={15} /> Відкрити Google Maps
-          </a>
-        </div>
-
-        <div className="map-embed-wrap">
-          <iframe
-            className="map-embed"
-            src="https://www.google.com/maps?q=49.8122096,24.1435555&z=15&output=embed"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="AvtoMix на карті"
-          />
         </div>
       </div>
     </div>
@@ -2764,7 +2763,7 @@ export default function AvtoMixApp() {
         .contacts-cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; align-items: start; }
         .contacts-cards-row.single { grid-template-columns: 1fr; max-width: 640px; }
         @media (max-width: 760px) { .contacts-cards-row { grid-template-columns: 1fr; } }
-        .map-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 30px; margin-bottom: 14px; }
+        .map-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
         .contact-card {
           background: #171b23; border-radius: 20px; border: 1px solid rgba(255,255,255,.06);
           padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,.35); max-width: 560px;
@@ -2778,8 +2777,10 @@ export default function AvtoMixApp() {
         .contact-card-row p { margin: 0; color: #d8d8dc; font-size: 14.5px; }
         .contact-card-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .contact-card-actions .btn { flex: 1; justify-content: center; min-width: 180px; }
-        .map-embed-wrap { margin-top: 28px; border-radius: 24px; overflow: hidden; border: 1px solid var(--border); }
-        .map-embed { width: 100%; height: 500px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
+        .map-card { display: flex; flex-direction: column; }
+        .map-embed-wrap { margin-top: 10px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); flex: 1; }
+        .map-embed { width: 100%; height: 100%; min-height: 260px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
+        .btn.sm { padding: 7px 12px; font-size: 12.5px; }
         @media (max-width: 600px) {
           .contact-card { padding: 24px; }
           .contact-card-actions .btn { min-width: 100%; }
