@@ -1369,50 +1369,93 @@ function ContactsView({ social, toast }) {
         <div className="contacts-hero-overlay" />
         <div className="page-simple contacts-hero-inner">
           <h1>Контакти</h1>
-          <p>Ми у Львові — завжди на зв'язку</p>
+          <p>Ми завжди на зв'язку.</p>
+          <p>Допоможемо підібрати автомобіль, оформити страхування або відповісти на будь-які питання.</p>
+          <a className="btn primary lg" href="tel:+380976233145" style={{ marginTop: 18, width: "fit-content" }}><Phone size={16} /> Зателефонувати</a>
         </div>
       </div>
 
       <div className="page-simple">
-        <div className="contact-card">
-          <h3>Зв'яжіться з нами</h3>
+        <div className="contacts-photo-strip" style={{ backgroundImage: "url(/contacts-hero.png)" }} />
+      </div>
 
-          <div className="contact-card-row">
-            <div className="contact-card-icon"><Phone size={18} /></div>
-            <div>
-              <span className="contact-card-label">Телефони</span>
-              <a href="tel:+380976233145">+380 97 623 31 45</a>
-              <a href="tel:+380639388106">+380 63 938 81 06</a>
+      <div className="page-simple">
+        <div className="contacts-cards-row">
+          <div className="contact-card">
+            <h3>Наші контакти</h3>
+
+            <div className="contact-card-row">
+              <div className="contact-card-icon"><Phone size={18} /></div>
+              <div>
+                <span className="contact-card-label">Телефони</span>
+                <a href="tel:+380976233145">+380 97 623 31 45</a>
+                <a href="tel:+380639388106">+380 63 938 81 06</a>
+              </div>
+            </div>
+
+            <div className="contact-card-row">
+              <div className="contact-card-icon"><MapPin size={18} /></div>
+              <div>
+                <span className="contact-card-label">Адреса</span>
+                <p>м. Винники</p>
+              </div>
+            </div>
+
+            <div className="contact-card-row">
+              <div className="contact-card-icon"><Car size={18} /></div>
+              <div>
+                <span className="contact-card-label">Працюємо за попередньою домовленістю</span>
+                <p>Перед приїздом просимо зателефонувати.</p>
+              </div>
+            </div>
+
+            <div className="socials" style={{ margin: "18px 0 22px" }}>
+              <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={16} /></SocialIcon>
+              <SocialIcon href={social.telegram} label="Telegram"><Send size={16} /></SocialIcon>
+              <SocialIcon href={social.viber} label="Viber"><Phone size={16} /></SocialIcon>
+              <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={16} /></SocialIcon>
+            </div>
+
+            <div className="contact-card-actions">
+              <a className="btn primary lg" href="tel:+380976233145"><Phone size={16} /> Зателефонувати</a>
+              <a className="btn outline lg" href="https://www.google.com/maps/dir/?api=1&destination=49.8122096,24.1435555" target="_blank" rel="noreferrer"><Navigation size={16} /> Побудувати маршрут</a>
             </div>
           </div>
 
-          <div className="contact-card-row">
-            <div className="contact-card-icon"><MapPin size={18} /></div>
-            <div>
-              <span className="contact-card-label">Адреса</span>
-              <p>м. Винники</p>
+          <div className="contact-card">
+            <h3>Зв'яжіться з нами</h3>
+            <div className="contact-card-row">
+              <div className="contact-card-icon"><Phone size={18} /></div>
+              <div>
+                <span className="contact-card-label" style={{ color: "#fff", fontSize: 15, fontWeight: 600 }}>Швидкий зв'язок</span>
+                <p>Ми завжди на зв'язку та готові відповісти на ваші запитання.</p>
+              </div>
+            </div>
+            <div className="contact-card-row">
+              <div className="contact-card-icon"><ShieldCheck size={18} /></div>
+              <div>
+                <span className="contact-card-label" style={{ color: "#fff", fontSize: 15, fontWeight: 600 }}>Надійність</span>
+                <p>Допоможемо підібрати авто, оформити страхування або Trade-In.</p>
+              </div>
+            </div>
+            <div className="contact-card-row">
+              <div className="contact-card-icon"><Clock size={18} /></div>
+              <div>
+                <span className="contact-card-label" style={{ color: "#fff", fontSize: 15, fontWeight: 600 }}>Зручний графік</span>
+                <p>Працюємо за попередньою домовленістю у зручний для вас час.</p>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="contact-card-row">
-            <div className="contact-card-icon"><Car size={18} /></div>
-            <div>
-              <span className="contact-card-label">Працюємо за попередньою домовленістю</span>
-              <p>Перед приїздом просимо зателефонувати.</p>
-            </div>
+        <div className="map-section-head">
+          <div>
+            <h3 style={{ margin: 0 }}>Як нас знайти</h3>
+            <p style={{ margin: "4px 0 0", color: "var(--text-muted)" }}>м. Винники</p>
           </div>
-
-          <div className="socials" style={{ margin: "18px 0 22px" }}>
-            <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={16} /></SocialIcon>
-            <SocialIcon href={social.telegram} label="Telegram"><Send size={16} /></SocialIcon>
-            <SocialIcon href={social.viber} label="Viber"><Phone size={16} /></SocialIcon>
-            <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={16} /></SocialIcon>
-          </div>
-
-          <div className="contact-card-actions">
-            <a className="btn primary lg" href="tel:+380976233145"><Phone size={16} /> Зателефонувати</a>
-            <a className="btn outline lg" href="https://www.google.com/maps/dir/?api=1&destination=49.8122096,24.1435555" target="_blank" rel="noreferrer"><Navigation size={16} /> Побудувати маршрут</a>
-          </div>
+          <a className="btn outline" href="https://www.google.com/maps/place/49.8122096,24.1435555" target="_blank" rel="noreferrer">
+            <ExternalLink size={15} /> Відкрити Google Maps
+          </a>
         </div>
 
         <div className="map-embed-wrap">
@@ -1424,9 +1467,6 @@ function ContactsView({ social, toast }) {
             title="AvtoMix на карті"
           />
         </div>
-        <a className="btn outline" style={{ marginTop: 16 }} href="https://www.google.com/maps/place/49.8122096,24.1435555" target="_blank" rel="noreferrer">
-          <ExternalLink size={15} /> Відкрити Google Maps
-        </a>
       </div>
     </div>
   );
@@ -2722,6 +2762,11 @@ export default function AvtoMixApp() {
         .contacts-hero-inner { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; color: #fff; padding-top: 0; padding-bottom: 0; }
         .contacts-hero-inner h1 { font-size: 34px; margin: 0 0 6px; }
         .contacts-hero-inner p { margin: 0; color: #d8d8dc; }
+        .contacts-hero-inner p + p { margin-top: 6px; max-width: 480px; }
+        .contacts-photo-strip { height: 130px; border-radius: 16px; background-size: cover; background-position: center 70%; }
+        .contacts-cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; align-items: start; }
+        @media (max-width: 760px) { .contacts-cards-row { grid-template-columns: 1fr; } }
+        .map-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 30px; margin-bottom: 14px; }
         .contact-card {
           background: #171b23; border-radius: 20px; border: 1px solid rgba(255,255,255,.06);
           padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,.35); max-width: 560px;
