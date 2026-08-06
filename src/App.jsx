@@ -1363,45 +1363,70 @@ function TradeInView({ toast }) {
 }
 
 function ContactsView({ social, toast }) {
-  const [form, setForm] = useState({ name: "", phone: "", message: "" });
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-  const submit = (e) => {
-    e.preventDefault();
-    if (!form.name || !form.phone) { toast("Вкажіть імʼя та телефон"); return; }
-    toast("Повідомлення надіслано, ми звʼяжемось з вами");
-    setForm({ name: "", phone: "", message: "" });
-  };
   return (
-    <div className="page-simple">
-      <h2>Контакти</h2>
-      <div className="contacts-grid">
-        <div className="contacts-info">
-          <div className="contact-row"><MapPin size={16} /> м. Винники</div>
-          <div className="contact-row"><Phone size={16} /> <a href="tel:+380976233145">+380 97 623 31 45</a></div>
-          <div className="contact-row"><Phone size={16} /> <a href="tel:+380639388106">+380 63 938 81 06</a></div>
-          <div className="socials" style={{ marginTop: 14 }}>
+    <div className="contacts-page">
+      <div className="contacts-hero" style={{ backgroundImage: "url(/contacts-hero.png)" }}>
+        <div className="contacts-hero-overlay" />
+        <div className="page-simple contacts-hero-inner">
+          <h1>Контакти</h1>
+          <p>Ми у Львові — завжди на зв'язку</p>
+        </div>
+      </div>
+
+      <div className="page-simple">
+        <div className="contact-card">
+          <h3>Зв'яжіться з нами</h3>
+
+          <div className="contact-card-row">
+            <div className="contact-card-icon"><Phone size={18} /></div>
+            <div>
+              <span className="contact-card-label">Телефони</span>
+              <a href="tel:+380976233145">+380 97 623 31 45</a>
+              <a href="tel:+380639388106">+380 63 938 81 06</a>
+            </div>
+          </div>
+
+          <div className="contact-card-row">
+            <div className="contact-card-icon"><MapPin size={18} /></div>
+            <div>
+              <span className="contact-card-label">Адреса</span>
+              <p>м. Винники</p>
+            </div>
+          </div>
+
+          <div className="contact-card-row">
+            <div className="contact-card-icon"><Car size={18} /></div>
+            <div>
+              <span className="contact-card-label">Працюємо за попередньою домовленістю</span>
+              <p>Перед приїздом просимо зателефонувати.</p>
+            </div>
+          </div>
+
+          <div className="socials" style={{ margin: "18px 0 22px" }}>
             <SocialIcon href={social.tiktok} label="TikTok"><Music2 size={16} /></SocialIcon>
             <SocialIcon href={social.telegram} label="Telegram"><Send size={16} /></SocialIcon>
             <SocialIcon href={social.viber} label="Viber"><Phone size={16} /></SocialIcon>
             <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={16} /></SocialIcon>
           </div>
+
+          <div className="contact-card-actions">
+            <a className="btn primary lg" href="tel:+380976233145"><Phone size={16} /> Зателефонувати</a>
+            <a className="btn outline lg" href="https://www.google.com/maps/dir/?api=1&destination=49.8122096,24.1435555" target="_blank" rel="noreferrer"><Navigation size={16} /> Побудувати маршрут</a>
+          </div>
         </div>
-        <form className="form-section contact-form" onSubmit={submit}>
-          <h4>Написати нам</h4>
-          <div><label>Ім'я *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Ваше ім'я" /></div>
-          <div style={{ marginTop: 12 }}><label>Телефон *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" /></div>
-          <div style={{ marginTop: 12 }}><label>Повідомлення</label><textarea rows={4} value={form.message} onChange={(e) => set("message", e.target.value)} placeholder="Ваше запитання..." /></div>
-          <button className="btn primary lg" type="submit" style={{ width: "100%", marginTop: 14 }}>Надіслати</button>
-        </form>
-      </div>
-      <div className="map-embed-wrap">
-        <iframe
-          className="map-embed"
-          src="https://www.google.com/maps?q=49.8122096,24.1435555&z=15&output=embed"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="AvtoMix на карті"
-        />
+
+        <div className="map-embed-wrap">
+          <iframe
+            className="map-embed"
+            src="https://www.google.com/maps?q=49.8122096,24.1435555&z=15&output=embed"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="AvtoMix на карті"
+          />
+        </div>
+        <a className="btn outline" style={{ marginTop: 16 }} href="https://www.google.com/maps/place/49.8122096,24.1435555" target="_blank" rel="noreferrer">
+          <ExternalLink size={15} /> Відкрити Google Maps
+        </a>
       </div>
     </div>
   );
@@ -2692,14 +2717,30 @@ export default function AvtoMixApp() {
         .tradein-step b { font-size: 13.5px; }
         .tradein-step p { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
         .step-num { background: var(--accent); color: var(--accent-text); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 600; font-size: 13px; flex-shrink: 0; }
-        .contacts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-        @media (max-width: 760px) { .contacts-grid { grid-template-columns: 1fr; } }
-        .contacts-info { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-        .contact-row { display: flex; align-items: center; gap: 10px; font-size: 15px; margin-bottom: 12px; color: var(--text); }
-        .contact-row a { color: var(--accent); font-weight: 600; }
-        .map-embed-wrap { margin-top: 28px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
-        .map-embed { width: 100%; height: 380px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
-        .contact-form div { display: flex; flex-direction: column; }
+        .contacts-hero { position: relative; height: 260px; overflow: hidden; background-size: cover; background-position: center; }
+        .contacts-hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,11,15,0.55), rgba(10,11,15,0.92)); }
+        .contacts-hero-inner { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; color: #fff; padding-top: 0; padding-bottom: 0; }
+        .contacts-hero-inner h1 { font-size: 34px; margin: 0 0 6px; }
+        .contacts-hero-inner p { margin: 0; color: #d8d8dc; }
+        .contact-card {
+          background: #171b23; border-radius: 20px; border: 1px solid rgba(255,255,255,.06);
+          padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,.35); max-width: 560px;
+        }
+        .contact-card h3 { margin: 0 0 22px; font-size: 20px; color: #fff; }
+        .contact-card-row { display: flex; gap: 14px; margin-bottom: 20px; align-items: flex-start; }
+        .contact-card-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,107,26,0.14); color: #ff6b1a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .contact-card-label { display: block; font-size: 12.5px; color: #8a8d96; margin-bottom: 4px; }
+        .contact-card-row a { display: block; color: #fff; font-weight: 600; font-size: 15px; text-decoration: none; }
+        .contact-card-row a:hover { color: #ff6b1a; }
+        .contact-card-row p { margin: 0; color: #d8d8dc; font-size: 14.5px; }
+        .contact-card-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .contact-card-actions .btn { flex: 1; justify-content: center; min-width: 180px; }
+        .map-embed-wrap { margin-top: 28px; border-radius: 24px; overflow: hidden; border: 1px solid var(--border); }
+        .map-embed { width: 100%; height: 500px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
+        @media (max-width: 600px) {
+          .contact-card { padding: 24px; }
+          .contact-card-actions .btn { min-width: 100%; }
+        }
 
         .dropzone { border: 2px dashed var(--border); border-radius: 10px; padding: 30px 16px; text-align: center; cursor: pointer; color: var(--text-muted); }
         .dropzone.drag { border-color: var(--accent); color: var(--accent); }
