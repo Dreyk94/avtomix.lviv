@@ -1385,7 +1385,6 @@ function ContactsView({ social, toast }) {
             <SocialIcon href={social.viber} label="Viber"><Phone size={16} /></SocialIcon>
             <SocialIcon href={social.whatsapp} label="WhatsApp"><MessageCircle size={16} /></SocialIcon>
           </div>
-          <a className="map-placeholder" href="https://maps.app.goo.gl/uqLGf1hFvu6GxMfV9" target="_blank" rel="noreferrer"><MapPin size={22} /><span>Переглянути на карті</span></a>
         </div>
         <form className="form-section contact-form" onSubmit={submit}>
           <h4>Написати нам</h4>
@@ -1394,6 +1393,15 @@ function ContactsView({ social, toast }) {
           <div style={{ marginTop: 12 }}><label>Повідомлення</label><textarea rows={4} value={form.message} onChange={(e) => set("message", e.target.value)} placeholder="Ваше запитання..." /></div>
           <button className="btn primary lg" type="submit" style={{ width: "100%", marginTop: 14 }}>Надіслати</button>
         </form>
+      </div>
+      <div className="map-embed-wrap">
+        <iframe
+          className="map-embed"
+          src="https://www.google.com/maps?q=49.8122096,24.1435555&z=15&output=embed"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="AvtoMix на карті"
+        />
       </div>
     </div>
   );
@@ -2689,7 +2697,8 @@ export default function AvtoMixApp() {
         .contacts-info { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
         .contact-row { display: flex; align-items: center; gap: 10px; font-size: 15px; margin-bottom: 12px; color: var(--text); }
         .contact-row a { color: var(--accent); font-weight: 600; }
-        .map-placeholder { margin-top: 18px; height: 160px; border-radius: 10px; background: var(--bg-alt); border: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); font-size: 12.5px; }
+        .map-embed-wrap { margin-top: 28px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .map-embed { width: 100%; height: 380px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
         .contact-form div { display: flex; flex-direction: column; }
 
         .dropzone { border: 2px dashed var(--border); border-radius: 10px; padding: 30px 16px; text-align: center; cursor: pointer; color: var(--text-muted); }
