@@ -151,6 +151,14 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!profileOpen) return;
@@ -161,7 +169,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
 
 
   return (
-    <header className="header">
+    <header className={scrolled ? "header scrolled" : "header"}>
       <div className="header-main">
         <button className="icon-btn mobile-only" onClick={() => setMenuOpen(!menuOpen)} aria-label="Меню">
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -328,13 +336,30 @@ function PromoBanners({ setView }) {
   );
 }
 
-function HeroBanner({ banner, setView }) {
+function HeroBanner({ banner, setView, filters, setFilters }) {
   const [idx, setIdx] = useState(0);
+  const [qBrand, setQBrand] = useState("");
+  const [qModel, setQModel] = useState("");
+  const [qYear, setQYear] = useState("");
+  const [qPrice, setQPrice] = useState("");
+  const [qTrans, setQTrans] = useState("");
+  const [qFuel, setQFuel] = useState("");
   useEffect(() => {
     const t = setInterval(() => setIdx((i) => (i + 1) % banner.slides.length), 5000);
     return () => clearInterval(t);
   }, [banner.slides.length]);
   const slide = banner.slides[idx];
+  const qModels = qBrand ? (MODELS_BY_BRAND[qBrand] || []) : [];
+
+  const runSearch = (e) => {
+    e.preventDefault();
+    setFilters({
+      ...emptyFilters,
+      brand: qBrand, model: qModel, yearFrom: qYear, priceTo: qPrice, trans: qTrans, fuel: qFuel
+    });
+    setView("catalog");
+  };
+
   return (
     <section className="hero">
       <div className="hero-slide">
@@ -347,6 +372,7 @@ function HeroBanner({ banner, setView }) {
         }} />
         <div className="hero-overlay" style={{ backgroundImage: slide.overlay || "linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.18))" }} />
         <div className="hero-beam" aria-hidden="true" />
+        <div className="hero-warm-glow" aria-hidden="true" />
         <div className="hero-content">
           {!slide.hideEyebrow && <p className="hero-eyebrow">{slide.eyebrow || "AVTOMIX · перевірені авто з усієї України"}</p>}
           <h1 className="hero-title">{slide.title}</h1>
@@ -355,6 +381,33 @@ function HeroBanner({ banner, setView }) {
             <button className="btn primary lg" onClick={() => setView(slide.primaryView || "home")}>{slide.primaryLabel || "Переглянути каталог"}</button>
             <button className="btn outline lg" onClick={() => setView(slide.secondaryView || "submit")}>{slide.secondaryLabel || "Подати оголошення"}</button>
           </div>
+          <form className="hero-search" onSubmit={runSearch}>
+            <select value={qBrand} onChange={(e) => { setQBrand(e.target.value); setQModel(""); }} aria-label="Марка">
+              <option value="">Марка</option>
+              {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+            <select value={qModel} onChange={(e) => setQModel(e.target.value)} disabled={!qBrand} aria-label="Модель">
+              <option value="">Модель</option>
+              {qModels.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+            <select value={qYear} onChange={(e) => setQYear(e.target.value)} aria-label="Рік від">
+              <option value="">Рік від</option>
+              {[2010, 2013, 2016, 2019, 2022, 2024].map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select value={qPrice} onChange={(e) => setQPrice(e.target.value)} aria-label="Ціна до">
+              <option value="">Ціна до</option>
+              {[10000, 20000, 30000, 50000, 80000].map((p) => <option key={p} value={p}>${p.toLocaleString("en-US")}</option>)}
+            </select>
+            <select value={qTrans} onChange={(e) => setQTrans(e.target.value)} aria-label="Коробка">
+              <option value="">Коробка</option>
+              {TRANSMISSIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={qFuel} onChange={(e) => setQFuel(e.target.value)} aria-label="Паливо">
+              <option value="">Паливо</option>
+              {FUEL_TYPES.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+            <button className="btn primary" type="submit"><Search size={15} /> Знайти автомобіль</button>
+          </form>
         </div>
       </div>
       <button className="hero-arrow left" onClick={() => setIdx((idx - 1 + banner.slides.length) % banner.slides.length)} aria-label="Попередній слайд"><ChevronLeft size={20} /></button>
@@ -840,9 +893,9 @@ function PhotoDrop({ photos, setPhotos }) {
   const [dragOver, setDragOver] = useState(false);
 
   const addFiles = (files) => {
-    const arr = Array.from(files).slice(0, Math.max(0, 30 - photos.length));
+    const arr = Array.from(files).slice(0, Math.max(0, 50 - photos.length));
     const entries = arr.map((f) => ({ url: URL.createObjectURL(f), file: f }));
-    setPhotos((p) => [...p, ...entries].slice(0, 30));
+    setPhotos((p) => [...p, ...entries].slice(0, 50));
   };
 
   return (
@@ -856,7 +909,7 @@ function PhotoDrop({ photos, setPhotos }) {
       >
         <Upload size={22} />
         <p>Перетягніть фото сюди або натисніть, щоб вибрати</p>
-        <span className="hint">До 30 фото · автоматичне стиснення · перше фото — головне</span>
+        <span className="hint">До 50 фото · автоматичне стиснення · перше фото — головне</span>
         <input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
       </div>
       {photos.length > 0 && (
@@ -2247,21 +2300,32 @@ export default function AvtoMixApp() {
           --border: #E4E3DF; --header-bg: #0A0A0A; --header-text: #F4F4F4;
         }
         .app-root[data-theme="dark"] {
-          --bg: #0D0F14; --bg-alt: #171A20; --surface: #171A20; --surface-2: #1D2028;
-          --text: #F4F3F0; --text-muted: #96959D; --accent: #FF6B1A; --accent-2: #FF8A42; --accent-text: #0D0F14;
-          --border: #262A33; --header-bg: #0D0F14; --header-text: #F4F3F0;
+          --bg: #0B0D12; --bg-alt: #171A20; --surface: #151922; --surface-2: #1C2230;
+          --text: #F4F3F0; --text-muted: #9AA4B2; --accent: #FF7A1A; --accent-2: #FF5A1F; --accent-3: #FF6B1C; --accent-text: #0B0D12;
+          --border: #262A33; --header-bg: #0B0D12; --header-text: #F4F3F0;
         }
         .app-root[data-theme="dark"] .btn.primary {
-          background: linear-gradient(135deg, var(--accent), var(--accent-2));
-          box-shadow: 0 6px 22px rgba(255, 107, 26, 0.3);
-          transition: box-shadow 0.2s ease, filter 0.2s ease, transform 0.15s ease;
+          position: relative; overflow: hidden;
+          background: linear-gradient(135deg, var(--accent) 0%, var(--accent-3) 50%, var(--accent-2) 100%);
+          box-shadow: 0 0 25px rgba(255, 122, 26, 0.3);
+          transition: box-shadow 0.3s ease, transform 0.3s ease;
         }
-        .app-root[data-theme="dark"] .btn.primary:hover { box-shadow: 0 8px 30px rgba(255, 107, 26, 0.55); opacity: 1; filter: brightness(1.06); transform: translateY(-1px); }
-        .app-root[data-theme="dark"] .btn.outline { transition: box-shadow 0.2s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease; }
-        .app-root[data-theme="dark"] .btn.outline:hover { box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(255, 107, 26, 0.22); transform: translateY(-1px); }
+        .app-root[data-theme="dark"] .btn.primary::after {
+          content: ""; position: absolute; top: 0; left: -75%; width: 50%; height: 100%;
+          background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+          transform: skewX(-20deg); transition: left 0.6s ease;
+        }
+        .app-root[data-theme="dark"] .btn.primary:hover::after { left: 130%; }
+        .app-root[data-theme="dark"] .btn.primary:hover { box-shadow: 0 0 35px rgba(255,122,26,0.45); opacity: 1; transform: translateY(-2px) scale(1.03); }
+        .app-root[data-theme="dark"] .btn.outline {
+          background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12);
+          backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+          transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+        }
+        .app-root[data-theme="dark"] .btn.outline:hover { background: rgba(255,122,26,0.08); border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
         .app-root[data-theme="dark"] .price,
         .app-root[data-theme="dark"] .big-price {
-          background: linear-gradient(135deg, var(--accent), var(--accent-2));
+          background: linear-gradient(135deg, var(--accent), var(--accent-3), var(--accent-2));
           -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
         }
         .app-root[data-theme="dark"] .step-num,
@@ -2270,14 +2334,19 @@ export default function AvtoMixApp() {
         .app-root[data-theme="dark"] .badge {
           background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--accent-text);
         }
-        .app-root[data-theme="dark"] .car-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 12px 28px rgba(0,0,0,0.4); }
+        .app-root[data-theme="dark"] .car-card { border-color: rgba(255,255,255,0.05); box-shadow: 0 20px 45px rgba(0,0,0,0.35); }
+        .app-root[data-theme="dark"] .car-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 24px 55px rgba(0,0,0,0.45); transform: translateY(-8px); background: var(--surface-2); }
+        .app-root[data-theme="dark"] .car-card-img img { transition: transform 0.4s ease, filter 0.4s ease; }
+        .app-root[data-theme="dark"] .car-card:hover .car-card-img img { transform: scale(1.08); filter: brightness(1.05); }
         .app-root[data-theme="dark"] .fav-btn.active,
         .app-root[data-theme="dark"] .fav-btn.static.active { color: var(--accent-2); }
-        .app-root { background: var(--bg); color: var(--text); }
+        .app-root { background: var(--bg); color: var(--text); font-weight: 500; }
         .app-root * { box-sizing: border-box; }
         .accent-text { color: var(--accent); }
         a { color: inherit; text-decoration: none; }
-        h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.2px; margin: 0; }
+        h1 { font-family: var(--font-display); font-weight: 900; letter-spacing: -0.5px; margin: 0; }
+        h2 { font-family: var(--font-display); font-weight: 800; letter-spacing: 0.2px; margin: 0; }
+        h3, h4 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.2px; margin: 0; }
         p { margin: 0; }
         .desktop-only { display: flex; }
         .mobile-only { display: none; }
@@ -2301,7 +2370,8 @@ export default function AvtoMixApp() {
         .icon-btn.small { width: 30px; height: 30px; }
         .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-        .header { position: sticky; top: 0; z-index: 40; background: var(--header-bg); color: var(--header-text); }
+        .header { position: sticky; top: 0; z-index: 40; background: transparent; color: var(--header-text); transition: background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease; border-bottom: 1px solid transparent; }
+        .header.scrolled { background: rgba(12,14,18,0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(255,255,255,0.05); }
         .header-top { border-bottom: 1px solid rgba(255,255,255,0.08); }
         .header-top-inner { max-width: 1280px; margin: 0 auto; padding: 6px 24px; display: flex; justify-content: flex-end; align-items: center; font-size: 12px; color: #b8b8b8; }
         .socials { display: flex; gap: 10px; }
@@ -2360,11 +2430,16 @@ export default function AvtoMixApp() {
         @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
         @media (prefers-reduced-motion: reduce) { .hero-bg { animation: none; } }
         .hero-beam { position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.10), transparent 60%); }
+        .hero-warm-glow { position: absolute; top: 8%; right: 4%; width: 46%; max-width: 620px; aspect-ratio: 1; background: radial-gradient(circle, rgba(255,122,26,0.30) 0%, rgba(255,90,31,0.12) 40%, transparent 70%); filter: blur(10px); pointer-events: none; }
         .hero-content { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; color: #fff; }
         .hero-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
-        .hero-title { font-size: 52px; line-height: 1.05; max-width: 640px; }
+        .hero-title { font-size: 72px; line-height: 1.02; letter-spacing: -1.5px; max-width: 680px; }
         .hero-sub { font-size: 17px; margin-top: 14px; max-width: 480px; opacity: 0.92; }
         .hero-actions { display: flex; gap: 12px; margin-top: 26px; }
+        .hero-search { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 14px; padding: 12px; max-width: 720px; }
+        .hero-search select { width: auto; flex: 1; min-width: 108px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 12.5px; padding: 9px 8px; }
+        .hero-search .btn { flex-shrink: 0; }
+        @media (max-width: 640px) { .hero-search { padding: 10px; } .hero-search select { min-width: 45%; } }
         .hero-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .hero-arrow.left { left: 20px; } .hero-arrow.right { right: 20px; }
         .hero-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
@@ -2829,7 +2904,7 @@ export default function AvtoMixApp() {
 
       {view === "home" && (
         <>
-          <HeroBanner banner={banner} setView={setView} />
+          <HeroBanner banner={banner} setView={setView} filters={filters} setFilters={setFilters} />
           <FeaturesRow setView={setView} />
           <CatalogView cars={cars} filters={filters} setFilters={setFilters} favorites={favorites} toggleFav={toggleFav}
             compareList={compareList} toggleCmp={toggleCmp} openCar={openCar} filtersOpen={filtersOpen} setFiltersOpen={setFiltersOpen} toast={showToast} />
