@@ -381,33 +381,6 @@ function HeroBanner({ banner, setView, filters, setFilters }) {
             <button className="btn primary lg" onClick={() => setView(slide.primaryView || "home")}>{slide.primaryLabel || "Переглянути каталог"}</button>
             <button className="btn outline lg" onClick={() => setView(slide.secondaryView || "submit")}>{slide.secondaryLabel || "Подати оголошення"}</button>
           </div>
-          <form className="hero-search" onSubmit={runSearch}>
-            <select value={qBrand} onChange={(e) => { setQBrand(e.target.value); setQModel(""); }} aria-label="Марка">
-              <option value="">Марка</option>
-              {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
-            </select>
-            <select value={qModel} onChange={(e) => setQModel(e.target.value)} disabled={!qBrand} aria-label="Модель">
-              <option value="">Модель</option>
-              {qModels.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-            <select value={qYear} onChange={(e) => setQYear(e.target.value)} aria-label="Рік від">
-              <option value="">Рік від</option>
-              {[2010, 2013, 2016, 2019, 2022, 2024].map((y) => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <select value={qPrice} onChange={(e) => setQPrice(e.target.value)} aria-label="Ціна до">
-              <option value="">Ціна до</option>
-              {[10000, 20000, 30000, 50000, 80000].map((p) => <option key={p} value={p}>${p.toLocaleString("en-US")}</option>)}
-            </select>
-            <select value={qTrans} onChange={(e) => setQTrans(e.target.value)} aria-label="Коробка">
-              <option value="">Коробка</option>
-              {TRANSMISSIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <select value={qFuel} onChange={(e) => setQFuel(e.target.value)} aria-label="Паливо">
-              <option value="">Паливо</option>
-              {FUEL_TYPES.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
-            <button className="btn primary" type="submit"><Search size={15} /> Знайти автомобіль</button>
-          </form>
         </div>
       </div>
       <button className="hero-arrow left" onClick={() => setIdx((idx - 1 + banner.slides.length) % banner.slides.length)} aria-label="Попередній слайд"><ChevronLeft size={20} /></button>
