@@ -2421,11 +2421,11 @@ export default function AvtoMixApp() {
         .header { position: sticky; top: 0; z-index: 40; background: transparent; color: var(--header-text); transition: background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease; border-bottom: 1px solid transparent; }
         .header.scrolled { background: rgba(12,14,18,0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(255,255,255,0.05); }
         .header-top { border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .header-top-inner { max-width: 1280px; margin: 0 auto; padding: 6px 24px; display: flex; justify-content: flex-end; align-items: center; font-size: 12px; color: #b8b8b8; }
+        .header-top-inner { max-width: 1440px; margin: 0 auto; padding: 6px 24px; display: flex; justify-content: flex-end; align-items: center; font-size: 12px; color: #b8b8b8; }
         .socials { display: flex; gap: 10px; }
         .social-ic { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; color: #d8d8d8; }
         .social-ic:hover { border-color: var(--accent); color: var(--accent); }
-        .header-main { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
+        .header-main { max-width: 1440px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
         .logo { display: flex; align-items: center; gap: 9px; cursor: pointer; }
         .logo-word { font-family: var(--font-display); font-weight: 700; font-size: 32px; letter-spacing: 0.3px; }
         .logo-avto { color: var(--text); }
@@ -2472,19 +2472,19 @@ export default function AvtoMixApp() {
         }
 
         .hero { position: relative; overflow: hidden; }
-        .hero-slide { height: 740px; position: relative; display: flex; align-items: flex-end; padding-bottom: 64px; overflow: hidden; }
+        .hero-slide { height: clamp(450px, 34vw, 620px); position: relative; display: flex; align-items: flex-end; padding-bottom: clamp(28px, 4vw, 64px); overflow: hidden; }
         .hero-bg { position: absolute; inset: -12px; background-size: cover; background-position: center; animation: kenburns 14s ease-in-out infinite alternate; will-change: transform; }
         .hero-overlay { position: absolute; inset: 0; }
         @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
         @media (prefers-reduced-motion: reduce) { .hero-bg { animation: none; } }
         .hero-beam { position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.10), transparent 60%); }
         .hero-warm-glow { position: absolute; top: 8%; right: 4%; width: 46%; max-width: 620px; aspect-ratio: 1; background: radial-gradient(circle, rgba(255,122,26,0.30) 0%, rgba(255,90,31,0.12) 40%, transparent 70%); filter: blur(10px); pointer-events: none; }
-        .hero-content { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; color: #fff; }
-        .hero-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
-        .hero-title { font-size: 64px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; max-width: 680px; }
-        .hero-sub { font-size: 17px; margin-top: 14px; max-width: 480px; opacity: 0.92; }
-        .hero-actions { display: flex; gap: 12px; margin-top: 26px; }
-        .hero-search { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 14px; padding: 12px; max-width: 720px; }
+        .hero-content { position: relative; z-index: 2; max-width: 1440px; margin: 0 auto; padding: 0 24px; width: 100%; color: #fff; }
+        .hero-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: clamp(8px, 1vw, 14px); }
+        .hero-title { font-size: clamp(32px, 4vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1px; max-width: 680px; }
+        .hero-sub { font-size: clamp(14px, 1.1vw, 17px); margin-top: clamp(8px, 1vw, 14px); max-width: 480px; opacity: 0.92; }
+        .hero-actions { display: flex; gap: 12px; margin-top: clamp(14px, 2vw, 26px); }
+        .hero-search { display: flex; flex-wrap: wrap; gap: 8px; margin-top: clamp(12px, 1.6vw, 22px); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 14px; padding: 12px; max-width: 720px; }
         .hero-search select { width: auto; flex: 1; min-width: 108px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 12.5px; padding: 9px 8px; }
         .hero-search .btn { flex-shrink: 0; }
         @media (max-width: 640px) { .hero-search { padding: 10px; } .hero-search select { min-width: 45%; } }
@@ -2493,21 +2493,17 @@ export default function AvtoMixApp() {
         .hero-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
         .dot { width: 22px; height: 3px; background: rgba(255,255,255,0.4); border: none; cursor: pointer; }
         .dot.active { background: var(--accent); }
-        @media (max-width: 900px) {
-          .hero-title { font-size: 52px; }
-        }
         @media (max-width: 640px) {
-          .hero-slide { height: 380px; }
-          .hero-eyebrow { font-size: 10.5px; margin-bottom: 10px; }
-          .hero-title { font-size: 40px; max-width: 100%; }
-          .hero-sub { font-size: 14px; max-width: 100%; }
+          .hero-slide { height: auto; min-height: 420px; padding-bottom: 32px; }
+          .hero-title { max-width: 100%; }
+          .hero-sub { max-width: 100%; }
           .hero-actions { flex-direction: column; align-items: stretch; gap: 10px; margin-top: 18px; }
           .hero-actions .btn { justify-content: center; }
           .hero-arrow { width: 32px; height: 32px; }
           .hero-arrow.left { left: 10px; } .hero-arrow.right { right: 10px; }
         }
 
-        .catalog-wrap { max-width: 1280px; margin: 0 auto; padding: 56px 24px 64px 16px; display: flex; gap: 18px; align-items: flex-start; }
+        .catalog-wrap { max-width: 1440px; margin: 0 auto; padding: 56px 24px 64px 16px; display: flex; gap: 18px; align-items: flex-start; }
         .catalog-main { flex: 1; min-width: 0; }
         .catalog-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
         .catalog-head h2 { font-size: 36px; font-weight: 700; }
@@ -2585,11 +2581,11 @@ export default function AvtoMixApp() {
         .load-more { display: flex; margin: 26px auto 0; }
         .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); border: 1px dashed var(--border); border-radius: 12px; }
 
-        .page-simple { max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px; }
+        .page-simple { max-width: 1440px; margin: 0 auto; padding: 36px 24px 64px; }
         .page-simple.narrow { max-width: 780px; }
         .page-simple h2 { font-size: 56px; font-weight: 800; line-height: 1.15; margin-bottom: 22px; }
 
-        .detail-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 24px 64px; }
+        .detail-wrap { max-width: 1440px; margin: 0 auto; padding: 24px 24px 64px; }
         .back-link { margin-bottom: 16px; }
         .detail-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 28px; align-items: start; }
         @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } }
@@ -2858,7 +2854,7 @@ export default function AvtoMixApp() {
         .banner-edit-fields label { font-size: 11px; color: var(--text-muted); }
 
         .footer { background: var(--header-bg); color: var(--header-text); margin-top: auto; padding: 48px 24px 24px; border-top: 1px solid var(--border); }
-        .footer-inner { max-width: 1280px; margin: 0 auto; }
+        .footer-inner { max-width: 1440px; margin: 0 auto; }
         .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 32px; text-align: left; }
         .footer-logo { justify-content: flex-start; }
         .footer-brand p { max-width: 320px; }
@@ -2869,7 +2865,7 @@ export default function AvtoMixApp() {
         .footer-contact-line { display: flex; align-items: center; gap: 8px; margin: 0; }
         .catalog-intro { color: var(--text-muted); font-size: 13.5px; margin-top: 4px; max-width: 560px; }
         .footer p { color: #b8b8b8; font-size: 13.5px; max-width: 440px; margin: 10px 0; }
-        .copyright { font-size: 11.5px; color: #7a7a7a; margin: 32px auto 0; max-width: 1280px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .copyright { font-size: 11.5px; color: #7a7a7a; margin: 32px auto 0; max-width: 1440px; padding-top: 20px; border-top: 1px solid var(--border); }
         @media (max-width: 860px) {
           .footer-grid { grid-template-columns: 1fr 1fr; }
         }
@@ -2891,7 +2887,7 @@ export default function AvtoMixApp() {
           background: var(--pp-bg); color: var(--pp-text); margin: -1px 0 0; padding-bottom: 60px;
         }
         .passport-hero { position: relative; padding: 56px 24px 40px; background: radial-gradient(ellipse at 80% 0%, rgba(255,107,26,0.14), transparent 55%), var(--pp-bg); }
-        .passport-hero-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; }
+        .passport-hero-inner { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; }
         .passport-hero-inner.solo { grid-template-columns: 1fr; }
         .passport-hero-inner.solo .passport-hero-left { max-width: 100%; }
         .passport-hero-inner.solo .passport-form { max-width: 100%; }
@@ -2922,10 +2918,10 @@ export default function AvtoMixApp() {
         .passport-score-overlay b { font-size: 16px; color: #fff; }
         .passport-score-overlay p { margin: 2px 0 0; font-size: 12px; color: var(--pp-muted); }
         .risk-low { color: #3ecb6a; font-weight: 600; }
-        .passport-demo-banner { max-width: 1280px; margin: 0 auto 8px; padding: 0 24px; display: flex; gap: 10px; align-items: flex-start; }
+        .passport-demo-banner { max-width: 1440px; margin: 0 auto 8px; padding: 0 24px; display: flex; gap: 10px; align-items: flex-start; }
         .passport-demo-banner svg { color: var(--pp-accent); flex-shrink: 0; margin-top: 2px; }
         .passport-demo-banner p { font-size: 12.5px; color: var(--pp-muted); line-height: 1.6; margin: 0; }
-        .passport-section { max-width: 1280px; margin: 40px auto 0; padding: 0 24px; }
+        .passport-section { max-width: 1440px; margin: 40px auto 0; padding: 0 24px; }
         .passport-section h3 { font-family: var(--font-display); font-size: 19px; color: #fff; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
         .real-tag { font-size: 10.5px; font-weight: 700; background: rgba(62,203,106,0.15); color: #3ecb6a; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
         .demo-tag { font-size: 10.5px; font-weight: 700; background: rgba(255,107,26,0.15); color: var(--pp-accent); padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -2954,9 +2950,9 @@ export default function AvtoMixApp() {
         .whatcheck-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
         .whatcheck-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--pp-text); background: var(--pp-card); border: 1px solid var(--pp-border); border-radius: 10px; padding: 11px 14px; }
         .whatcheck-item svg { color: var(--pp-accent); flex-shrink: 0; }
-        .passport-page .bidfax-highlight { max-width: 1280px; margin: 40px auto 0; }
-        .passport-page .vin-disclaimer { max-width: 1280px; margin: 20px auto 0; padding: 0 24px; }
-        .passport-cta { max-width: 1280px; margin: 48px auto 0; padding: 44px 32px; text-align: center; border-radius: 22px; background: radial-gradient(ellipse at 50% 0%, rgba(255,107,26,0.18), transparent 60%), #0F0F13; border: 1px solid var(--pp-border); }
+        .passport-page .bidfax-highlight { max-width: 1440px; margin: 40px auto 0; }
+        .passport-page .vin-disclaimer { max-width: 1440px; margin: 20px auto 0; padding: 0 24px; }
+        .passport-cta { max-width: 1440px; margin: 48px auto 0; padding: 44px 32px; text-align: center; border-radius: 22px; background: radial-gradient(ellipse at 50% 0%, rgba(255,107,26,0.18), transparent 60%), #0F0F13; border: 1px solid var(--pp-border); }
         .passport-cta h3 { font-family: var(--font-display); font-size: 26px; color: #fff; margin-bottom: 8px; }
         .passport-cta p { color: var(--pp-muted); font-size: 14.5px; margin-bottom: 22px; }
         .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 30px; cursor: zoom-out; }
