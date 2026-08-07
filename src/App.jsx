@@ -7,7 +7,7 @@ import {
   Gauge, Fuel, Cog, Palette, User, ImageIcon, ArrowUpDown, LayoutGrid, List, Loader2,
   ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock, Maximize2,
   Award, RefreshCw, Umbrella, KeyRound, Globe, HeartPulse, ShieldAlert, Car, FileText, Zap, ChevronDown,
-  Sparkles, Download, CheckCircle2, XCircle, Fingerprint, Clock, Navigation, ScanLine, Camera, Route, Flame
+  Sparkles, Download, CheckCircle2, XCircle, Fingerprint, Clock, Navigation, ScanLine, Camera, Route, Flame, Bell
 } from "lucide-react";
 
 const BRANDS = [
@@ -118,6 +118,26 @@ function seedCars() {
 
 const fmtPrice = (n) => "$" + n.toLocaleString("en-US");
 const fmtNum = (n) => n.toLocaleString("uk-UA");
+const timeAgo = (iso) => {
+  if (!iso) return "";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "щойно";
+  if (min < 60) return `${min} хв тому`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `${hrs} год тому`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days} дн тому`;
+  return new Date(iso).toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
+};
+const normalizePhone = (v) => (v || "").trim();
+const REQUEST_STATUS_META = {
+  new: { label: "Нова", emoji: "🟠" },
+  in_progress: { label: "В роботі", emoji: "🔵" },
+  contacted: { label: "Зв'язалися", emoji: "🟣" },
+  completed: { label: "Виконано", emoji: "🟢" },
+  cancelled: { label: "Скасовано", emoji: "🔴" }
+};
 const fmtSoldDate = (ts) => {
   if (!ts) return "";
   const days = Math.floor((Date.now() - ts) / 86400000);
@@ -146,12 +166,15 @@ function SocialIcon({ href, label, children }) {
   );
 }
 
-function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, setMenuOpen, social, favCount, cmpCount, toast, session, profile, onLogout, setCabinetTab, myActiveCount, mySoldCount }) {
+function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, setMenuOpen, social, favCount, cmpCount, toast, session, profile, onLogout, setCabinetTab, myActiveCount, mySoldCount, notifications, unreadNotifCount, onOpenRequests, setAdminTab }) {
   const isAdmin = !supabaseReady || profile?.role === "admin";
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+  const goToAdmin = () => { setAdminTab && setAdminTab("listings"); setView("admin"); };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -166,6 +189,13 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [profileOpen]);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const onClick = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [notifOpen]);
 
 
   return (
@@ -194,6 +224,37 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
             {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
           </button>
 
+          {isAdmin && supabaseReady && (
+            <div className="notif-wrap desktop-only" ref={notifRef}>
+              <button className="icon-btn notif-bell" onClick={() => setNotifOpen((o) => !o)} aria-label="Сповіщення">
+                <Bell size={18} />
+                {unreadNotifCount > 0 && <span className="notif-badge">{unreadNotifCount > 9 ? "9+" : unreadNotifCount}</span>}
+              </button>
+              {notifOpen && (
+                <div className="notif-dropdown">
+                  <div className="notif-dropdown-head">🔔 Сповіщення</div>
+                  {(!notifications || notifications.length === 0) ? (
+                    <div className="notif-empty">Сповіщень поки немає</div>
+                  ) : (
+                    <div className="notif-list">
+                      {notifications.slice(0, 8).map((n) => (
+                        <div key={n.id} className={n.is_read ? "notif-item" : "notif-item unread"} onClick={() => { onOpenRequests && onOpenRequests(); setNotifOpen(false); }}>
+                          <span className="notif-dot" />
+                          <div>
+                            <div className="notif-title">{n.title}</div>
+                            <div className="notif-body">{n.body}</div>
+                            <div className="notif-time">{timeAgo(n.created_at)}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button className="link-btn notif-viewall" onClick={() => { onOpenRequests && onOpenRequests(); setNotifOpen(false); }}>Переглянути всі</button>
+                </div>
+              )}
+            </div>
+          )}
+
           {session ? (
             <div className="profile-menu-wrap desktop-only" ref={profileRef}>
               <button className="profile-avatar-btn" onClick={() => setProfileOpen((o) => !o)} aria-label="Профіль">
@@ -213,7 +274,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
                     <button onClick={() => { setCabinetTab("sold"); setView("cabinet"); setProfileOpen(false); }}><CheckCircle2 size={15} /> Продані авто ({mySoldCount ?? 0})</button>
                   )}
                   {isAdmin && (
-                    <button onClick={() => { setView("admin"); setProfileOpen(false); }}><ShieldCheck size={15} /> Адмін-панель</button>
+                    <button onClick={() => { goToAdmin(); setProfileOpen(false); }}><ShieldCheck size={15} /> Адмін-панель</button>
                   )}
                   <button onClick={() => { setView("favorites"); setProfileOpen(false); }}><Heart size={15} /> Обране ({favCount})</button>
                   <div className="profile-dropdown-sep" />
@@ -247,7 +308,12 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
           <button className="nav-link" onClick={() => { setView("favorites"); setMenuOpen(false); }}>Обране ({favCount})</button>
           <button className="nav-link" onClick={() => { setView("compare"); setMenuOpen(false); }}>Порівняння ({cmpCount})</button>
           {canPublish && <button className="nav-link" onClick={() => { setView("cabinet"); setMenuOpen(false); }}>Мій кабінет</button>}
-          {isAdmin && <button className="nav-link" onClick={() => { setView("admin"); setMenuOpen(false); }}>Адмін-панель</button>}
+          {isAdmin && <button className="nav-link" onClick={() => { goToAdmin(); setMenuOpen(false); }}>Адмін-панель</button>}
+          {isAdmin && supabaseReady && (
+            <button className="nav-link" onClick={() => { onOpenRequests && onOpenRequests(); setMenuOpen(false); }}>
+              🔔 Заявки{unreadNotifCount > 0 ? ` (${unreadNotifCount})` : ""}
+            </button>
+          )}
           {session ? (
             <button className="btn ghost" onClick={() => { onLogout(); setMenuOpen(false); }}><LogOut size={14} /> Вийти</button>
           ) : (
@@ -1063,26 +1129,68 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
   );
 }
 
+const emptySelectionForm = { name: "", phone: "", brand: "", model: "", budgetFrom: "", budgetTo: "", yearFrom: "", yearTo: "", comment: "" };
+
 function SelectionRequestView({ toast }) {
-  const [form, setForm] = useState({ name: "", phone: "", brand: "", model: "", budgetFrom: "", budgetTo: "", yearFrom: "", yearTo: "", comment: "" });
+  const [form, setForm] = useState(emptySelectionForm);
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const validate = (f) => {
+    const errs = {};
+    if (!f.name.trim()) errs.name = "Вкажіть ім'я";
+    if (!f.phone.trim()) errs.phone = "Вкажіть телефон";
+    else if (!/^[\d+\s()-]{7,}$/.test(f.phone.trim())) errs.phone = "Перевірте формат телефону";
+    return errs;
+  };
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.phone.trim()) { toast("Вкажіть ім'я та телефон"); return; }
+    if (submitting) return; // захист від повторної відправки
+    const errs = validate(form);
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+
     setSubmitting(true);
+    setJustSubmitted(false);
     try {
-      const res = await fetch("/api/notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, source: "Підбір авто" })
-      });
-      if (!res.ok) throw new Error("request failed");
-      toast("Заявку надіслано! Ми зв'яжемось з вами найближчим часом");
-      setForm({ name: "", phone: "", brand: "", model: "", budgetFrom: "", budgetTo: "", yearFrom: "", yearTo: "", comment: "" });
+      if (supabaseReady) {
+        const payload = {
+          name: form.name.trim(),
+          phone: normalizePhone(form.phone),
+          brand: form.brand.trim() || null,
+          model: form.model.trim() || null,
+          budget_from: form.budgetFrom ? Number(form.budgetFrom) : null,
+          budget_to: form.budgetTo ? Number(form.budgetTo) : null,
+          year_from: form.yearFrom ? Number(form.yearFrom) : null,
+          year_to: form.yearTo ? Number(form.yearTo) : null,
+          comment: form.comment.trim() || null,
+          status: "new"
+        };
+        const { error } = await supabase.from("requests").insert(payload);
+        if (error) throw error;
+        // додатково (не обов'язково): копія в Telegram, не блокує основний потік
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, source: "Підбір авто" })
+        }).catch(() => {});
+      } else {
+        const res = await fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, source: "Підбір авто" })
+        });
+        if (!res.ok) throw new Error("request failed");
+      }
+      toast("Заявку успішно надіслано!");
+      setJustSubmitted(true);
+      setForm(emptySelectionForm);
+      setErrors({});
     } catch (err) {
-      toast("Не вдалося надіслати заявку. Зателефонуйте нам напряму");
+      toast("Не вдалося надіслати заявку. Спробуйте ще раз або зверніться до нас іншим способом.");
     } finally {
       setSubmitting(false);
     }
@@ -1092,7 +1200,18 @@ function SelectionRequestView({ toast }) {
     <div className="page-simple narrow">
       <h2>🔍 Підбір авто</h2>
       <p className="intro-text">Розкажіть, яке авто шукаєте — підберемо варіанти з наявних і нових надходжень та звʼяжемось з вами. Заявка одразу надходить нашому менеджеру.</p>
-      <form className="listing-form" onSubmit={submit}>
+
+      {justSubmitted && (
+        <div className="success-box">
+          <CheckCircle2 size={20} />
+          <div>
+            <b>Заявку успішно надіслано!</b>
+            <p>Ми отримали ваш запит і зв'яжемося з вами найближчим часом.</p>
+          </div>
+        </div>
+      )}
+
+      <form className="listing-form" onSubmit={submit} noValidate>
         <div className="form-section">
           <h4>Ваші побажання</h4>
           <div className="form-grid">
@@ -1112,12 +1231,20 @@ function SelectionRequestView({ toast }) {
         <div className="form-section">
           <h4>Контакти</h4>
           <div className="form-grid">
-            <div><label>Ім'я *</label><input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Ваше ім'я" /></div>
-            <div><label>Телефон *</label><input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" /></div>
+            <div>
+              <label>Ім'я *</label>
+              <input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Ваше ім'я" className={errors.name ? "input-error" : ""} />
+              {errors.name && <span className="field-error">{errors.name}</span>}
+            </div>
+            <div>
+              <label>Телефон *</label>
+              <input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+380 63 123 45 67" className={errors.phone ? "input-error" : ""} />
+              {errors.phone && <span className="field-error">{errors.phone}</span>}
+            </div>
           </div>
         </div>
         <button className="btn primary lg" type="submit" disabled={submitting} style={{ width: "100%" }}>
-          {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилаємо...</> : "Надіслати заявку"}
+          {submitting ? <><Loader2 size={16} className="spin-ic" /> Надсилання...</> : "Надіслати заявку"}
         </button>
       </form>
     </div>
@@ -1227,7 +1354,7 @@ function InsuranceView({ toast }) {
             <p className="ins-hero-sub">ОСЦПВ, КАСКО, Зелена карта та інші страхові продукти від перевірених партнерів.</p>
             <div className="hero-actions">
               <button className="btn primary lg" onClick={scrollToTypes}>Оформити страховку</button>
-              <button className="btn outline lg" onClick={() => openType("consult")}>Отримати консультацію</button>
+              <a className="btn outline lg" href="tel:+380977196322"><Phone size={16} /> Отримати консультацію</a>
             </div>
           </div>
           <div className="ins-glass-card">
@@ -1538,7 +1665,7 @@ function VinCheckView({ toast }) {
   return (
     <div className="passport-page">
       <section className="passport-hero">
-        <div className={result ? "passport-hero-inner" : "passport-hero-inner solo"}>
+        <div className="passport-hero-inner solo">
           <div className="passport-hero-left">
             <p className="passport-eyebrow"><Fingerprint size={13} /> AVTOMIX AUTO PASSPORT</p>
             <h1>Паспорт автомобіля AvtoMix</h1>
@@ -1551,20 +1678,6 @@ function VinCheckView({ toast }) {
             </form>
             {error && <div className="vin-error"><AlertTriangle size={16} /> {error}</div>}
           </div>
-          {result && (
-            <div className="passport-hero-right">
-              <div className="passport-score-card">
-                <img src={demoPhotos[0]} alt={carLabel} />
-                <div className="passport-score-overlay">
-                  <div className="score-ring"><span>87</span><small>/100</small></div>
-                  <div>
-                    <b>{carLabel || "Автомобіль"}</b>
-                    <p>Стан автомобіля · <span className="risk-low">Ризик низький</span></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
@@ -1762,8 +1875,184 @@ function AdminUsersTab({ toast }) {
   );
 }
 
-function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast, updateCar, deleteCar }) {
-  const [tab, setTab] = useState("listings");
+function AdminRequestsTab({ toast, notifications, markNotificationsRead, refreshNotifications }) {
+  const [requests, setRequests] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [detailId, setDetailId] = useState(null);
+  const [savingStatus, setSavingStatus] = useState(false);
+
+  const fetchRequests = () => {
+    if (!supabaseReady) { setLoadError("no-supabase"); return; }
+    supabase.from("requests").select("*").order("created_at", { ascending: false }).then(({ data, error }) => {
+      if (error) { setLoadError(error.message); return; }
+      setRequests(data || []);
+    });
+  };
+
+  useEffect(() => { fetchRequests(); }, []);
+
+  // Real-time: нові заявки з'являються у списку без перезавантаження сторінки
+  useEffect(() => {
+    if (!supabaseReady) return;
+    const channel = supabase
+      .channel("admin-requests-list")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "requests" }, (payload) => {
+        setRequests((rs) => (rs ? [payload.new, ...rs] : [payload.new]));
+        toast("🔔 Нова заявка на підбір авто");
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "requests" }, (payload) => {
+        setRequests((rs) => (rs ? rs.map((r) => (r.id === payload.new.id ? payload.new : r)) : rs));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const openDetail = async (r) => {
+    setDetailId(r.id);
+    if (!r.viewed_at) {
+      const nowIso = new Date().toISOString();
+      const { error } = await supabase.from("requests").update({ viewed_at: nowIso }).eq("id", r.id);
+      if (!error) setRequests((rs) => rs.map((x) => (x.id === r.id ? { ...x, viewed_at: nowIso } : x)));
+    }
+    if (markNotificationsRead) await markNotificationsRead(r.id);
+  };
+
+  const changeStatus = async (id, status) => {
+    setSavingStatus(true);
+    const { error } = await supabase.from("requests").update({ status }).eq("id", id);
+    setSavingStatus(false);
+    if (error) { toast("Не вдалося оновити статус"); return; }
+    setRequests((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)));
+    toast("Статус заявки оновлено");
+  };
+
+  if (!supabaseReady) {
+    return <div className="empty-state">Система заявок доступна лише після підключення Supabase.</div>;
+  }
+  if (loadError && loadError !== "no-supabase") {
+    return <div className="empty-state">Не вдалося завантажити заявки ({loadError}).</div>;
+  }
+  if (!requests) return <div className="empty-state">Завантаження...</div>;
+
+  const counts = {
+    all: requests.length,
+    new: requests.filter((r) => r.status === "new").length,
+    in_progress: requests.filter((r) => r.status === "in_progress").length,
+    completed: requests.filter((r) => r.status === "completed").length,
+    cancelled: requests.filter((r) => r.status === "cancelled").length
+  };
+
+  const filtered = requests
+    .filter((r) => statusFilter === "all" || r.status === statusFilter)
+    .filter((r) => {
+      if (!search.trim()) return true;
+      const q = search.trim().toLowerCase();
+      return `${r.name || ""} ${r.phone || ""} ${r.brand || ""} ${r.model || ""}`.toLowerCase().includes(q);
+    })
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const detail = requests.find((r) => r.id === detailId);
+
+  return (
+    <div>
+      <div className="requests-toolbar">
+        <div className="requests-subtabs">
+          <button className={statusFilter === "all" ? "subtab active" : "subtab"} onClick={() => setStatusFilter("all")}>Усі ({counts.all})</button>
+          <button className={statusFilter === "new" ? "subtab active" : "subtab"} onClick={() => setStatusFilter("new")}>Нові ({counts.new})</button>
+          <button className={statusFilter === "in_progress" ? "subtab active" : "subtab"} onClick={() => setStatusFilter("in_progress")}>В роботі ({counts.in_progress})</button>
+          <button className={statusFilter === "completed" ? "subtab active" : "subtab"} onClick={() => setStatusFilter("completed")}>Виконані ({counts.completed})</button>
+          <button className={statusFilter === "cancelled" ? "subtab active" : "subtab"} onClick={() => setStatusFilter("cancelled")}>Скасовані ({counts.cancelled})</button>
+        </div>
+        <div className="requests-search">
+          <Search size={14} className="search-ic" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Пошук за іменем, телефоном, маркою..." />
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="empty-state">
+          {requests.length === 0 ? (
+            <>Заявок поки немає.<br />Коли користувачі надішлють заявку на підбір авто, вони з'являться тут.</>
+          ) : "Немає заявок за цим фільтром."}
+        </div>
+      ) : (
+        <div className="requests-list">
+          {filtered.map((r) => (
+            <div key={r.id} className={!r.viewed_at ? "request-row unread" : "request-row"}>
+              <div className="request-row-main">
+                <div className="request-row-top">
+                  <span className="request-id">#{r.id.slice(0, 8)}</span>
+                  <span className={`status-tag req-st-${r.status}`}>{REQUEST_STATUS_META[r.status]?.emoji} {REQUEST_STATUS_META[r.status]?.label}</span>
+                </div>
+                <div className="request-row-name">{r.name} <span className="request-row-phone">{r.phone}</span></div>
+                <div className="request-row-car">{[r.brand, r.model].filter(Boolean).join(" ") || "Марка/модель не вказані"}</div>
+                <div className="request-row-meta">
+                  {(r.budget_from || r.budget_to) && <span>Бюджет: ${r.budget_from ?? "0"} — ${r.budget_to ?? "?"}</span>}
+                  {(r.year_from || r.year_to) && <span>Рік: {r.year_from ?? "?"} — {r.year_to ?? "?"}</span>}
+                </div>
+              </div>
+              <div className="request-row-side">
+                <span className="request-date">{new Date(r.created_at).toLocaleString("uk-UA", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                <button className="btn outline sm" onClick={() => openDetail(r)}>Переглянути</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {detail && (
+        <div className="lightbox" onClick={() => setDetailId(null)}>
+          <div className="confirm-modal request-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="request-modal-head">
+              <h3>Заявка #{detail.id.slice(0, 8)}</h3>
+              <span className={`status-tag req-st-${detail.status}`}>{REQUEST_STATUS_META[detail.status]?.emoji} {REQUEST_STATUS_META[detail.status]?.label}</span>
+            </div>
+
+            <div className="request-modal-section">
+              <h4>Контактні дані</h4>
+              <div className="request-modal-grid">
+                <div><span>Ім'я</span><b>{detail.name}</b></div>
+                <div><span>Телефон</span><b>{detail.phone ? <a href={`tel:${detail.phone.replace(/\s/g, "")}`}>{detail.phone}</a> : "—"}</b></div>
+              </div>
+            </div>
+
+            <div className="request-modal-section">
+              <h4>Побажання</h4>
+              <div className="request-modal-grid">
+                <div><span>Марка</span><b>{detail.brand || "—"}</b></div>
+                <div><span>Модель</span><b>{detail.model || "—"}</b></div>
+                <div><span>Бюджет</span><b>{(detail.budget_from || detail.budget_to) ? `$${detail.budget_from ?? "0"} — $${detail.budget_to ?? "?"}` : "—"}</b></div>
+                <div><span>Рік</span><b>{(detail.year_from || detail.year_to) ? `${detail.year_from ?? "?"} — ${detail.year_to ?? "?"}` : "—"}</b></div>
+              </div>
+              {detail.comment && (
+                <div className="request-modal-comment"><span>Коментар</span><p>{detail.comment}</p></div>
+              )}
+            </div>
+
+            <div className="request-modal-section">
+              <label>Змінити статус</label>
+              <select value={detail.status} disabled={savingStatus} onChange={(e) => changeStatus(detail.id, e.target.value)}>
+                {Object.entries(REQUEST_STATUS_META).map(([k, m]) => <option key={k} value={k}>{m.emoji} {m.label}</option>)}
+              </select>
+            </div>
+
+            <div className="request-modal-footer">
+              <span className="request-created">Створено: {new Date(detail.created_at).toLocaleString("uk-UA")}</span>
+              <button className="link-btn" onClick={() => setDetailId(null)}>Закрити</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast, updateCar, deleteCar, initialTab, notifications, markNotificationsRead, refreshNotifications, requestsBadgeCount }) {
+  const [tab, setTab] = useState(initialTab || "listings");
+  useEffect(() => { if (initialTab) setTab(initialTab); }, [initialTab]);
   const [confirmSoldId, setConfirmSoldId] = useState(null);
   const [statusModalCarId, setStatusModalCarId] = useState(null);
   const totalViews = cars.reduce((s, c) => s + c.views, 0);
@@ -1781,7 +2070,7 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
   };
 
   return (
-    <div className="page-simple">
+    <div className="page-simple admin-page">
       <h2><LayoutDashboard size={20} style={{ verticalAlign: -3, marginRight: 6 }} />Адмін-панель</h2>
 
       <div className="stat-cards">
@@ -1794,11 +2083,18 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
       <div className="admin-tabs">
         <button className={tab === "listings" ? "tab active" : "tab"} onClick={() => setTab("listings")}>Оголошення</button>
         <button className={tab === "users" ? "tab active" : "tab"} onClick={() => setTab("users")}>Користувачі</button>
+        <button className={tab === "requests" ? "tab active" : "tab"} onClick={() => setTab("requests")}>
+          Заявки{requestsBadgeCount > 0 && <span className="tab-badge">{requestsBadgeCount}</span>}
+        </button>
         <button className={tab === "banner" ? "tab active" : "tab"} onClick={() => setTab("banner")}>Банер</button>
         <button className={tab === "contacts" ? "tab active" : "tab"} onClick={() => setTab("contacts")}>Контакти та соцмережі</button>
       </div>
 
       {tab === "users" && <AdminUsersTab toast={toast} />}
+
+      {tab === "requests" && (
+        <AdminRequestsTab toast={toast} notifications={notifications} markNotificationsRead={markNotificationsRead} refreshNotifications={refreshNotifications} />
+      )}
 
       {tab === "listings" && (
         <div className="admin-cards-grid">
@@ -1822,14 +2118,15 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
                   <span className={c.published ? "status-tag pub" : "status-tag pend"}>{c.published ? "Опубліковано" : "На модерації"}</span>
                 </div>
                 <div className="admin-car-actions">
-                  <button className="btn outline" onClick={() => setStatusModalCarId(c.id)}><RefreshCw size={14} /> Змінити статус</button>
+                  <button className="icon-btn small" title="Редагувати" onClick={() => toast("Редагування оголошень буде додано найближчим часом")}><Pencil size={14} /></button>
+                  <button className="btn outline sm" onClick={() => setStatusModalCarId(c.id)}><RefreshCw size={13} /> Статус</button>
                   <button className={c.hot ? "icon-btn small hot-active" : "icon-btn small"} title={c.hot ? "Прибрати «Гарячу пропозицію»" : "Позначити «Гарячою пропозицією»"} onClick={() => patchCar(c.id, { hot: !c.hot })}>
-                    <Flame size={15} />
+                    <Flame size={14} />
                   </button>
                   <button className="icon-btn small" title={c.published ? "Приховати" : "Опублікувати"} onClick={() => patchCar(c.id, { published: !c.published })}>
-                    {c.published ? <Eye size={15} /> : <Check size={15} />}
+                    {c.published ? <Eye size={14} /> : <Check size={14} />}
                   </button>
-                  <button className="icon-btn small" title="Видалити" onClick={() => removeCar(c.id)}><Trash2 size={15} /></button>
+                  <button className="icon-btn small danger" title="Видалити" onClick={() => removeCar(c.id)}><Trash2 size={14} /></button>
                 </div>
               </div>
             </div>
@@ -1914,14 +2211,14 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
   );
 }
 
-function MyCabinetView({ cars, session, profile, toast, updateCar, deleteCar, setView, initialTab }) {
+function MyCabinetView({ cars, session, profile, canPublish, toast, updateCar, deleteCar, setView, initialTab }) {
   const myCars = cars.filter((c) => c.ownerId && session && c.ownerId === session.user.id);
   const [statusModalCarId, setStatusModalCarId] = useState(null);
   const [confirmSoldId, setConfirmSoldId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [cabTab, setCabTab] = useState(initialTab || "all");
+  const [cabTab, setCabTab] = useState(initialTab && initialTab !== "draft" ? initialTab : "all");
 
-  useEffect(() => { if (initialTab) setCabTab(initialTab); }, [initialTab]);
+  useEffect(() => { if (initialTab && initialTab !== "draft") setCabTab(initialTab); }, [initialTab]);
 
   const patchCar = (id, patch) => updateCar && updateCar(id, patch);
   const removeCar = (id) => {
@@ -1930,71 +2227,80 @@ function MyCabinetView({ cars, session, profile, toast, updateCar, deleteCar, se
     toast("Оголошення видалено");
   };
 
-  const activeCars = myCars.filter((c) => c.published && (c.status === "available" || c.status === "reserved" || !c.status));
+  const activeCars = myCars.filter((c) => c.published && c.status !== "sold");
   const soldCars = myCars.filter((c) => c.status === "sold");
-  const draftCars = myCars.filter((c) => !c.published && c.status !== "sold");
 
   const soldDurations = soldCars.filter((c) => c.soldAt && c.createdAt).map((c) => (c.soldAt - c.createdAt) / 86400000);
   const avgSellDays = soldDurations.length ? Math.round(soldDurations.reduce((s, d) => s + d, 0) / soldDurations.length) : null;
   const favoritesTotal = myCars.reduce((s, c) => s + (c.favCount ?? 0), 0);
 
-  const stats = {
-    total: myCars.length,
-    active: activeCars.length,
-    sold: soldCars.length,
-    views: myCars.reduce((s, c) => s + (c.views || 0), 0)
-  };
+  const stats = [
+    { icon: FileText, label: "Всього оголошень", value: myCars.length },
+    { icon: CheckCircle2, label: "Активні", value: activeCars.length },
+    { icon: KeyRound, label: "Продано", value: soldCars.length },
+    { icon: Eye, label: "Перегляди", value: fmtNum(myCars.reduce((s, c) => s + (c.views || 0), 0)) },
+    { icon: Clock, label: "Середній час продажу", value: avgSellDays !== null ? `${avgSellDays} дн.` : "—" },
+    { icon: Heart, label: "Збережено в обране", value: favoritesTotal }
+  ];
 
-  const shown = cabTab === "active" ? activeCars : cabTab === "sold" ? soldCars : cabTab === "draft" ? draftCars : myCars;
+  const shown = cabTab === "active" ? activeCars : cabTab === "sold" ? soldCars : myCars;
 
   return (
-    <div className="page-simple">
-      <h2><LayoutDashboard size={20} style={{ verticalAlign: -3, marginRight: 6 }} />Мій кабінет</h2>
-      <p className="intro-text">Тут ти керуєш лише своїми оголошеннями — змінюєш статус, публікуєш, видаляєш. {profile?.role === "admin" && "У тебе також є доступ до повної адмін-панелі з усіма оголошеннями сайту."}</p>
+    <div className="page-simple cabinet-page">
+      <h2>Мій кабінет</h2>
+      <p className="intro-text">Керуйте своїми автомобілями та оголошеннями.</p>
 
-      <div className="stat-cards">
-        <div className="stat-card"><span>Всього оголошень</span><b>{stats.total}</b></div>
-        <div className="stat-card"><span>Активних</span><b>{stats.active}</b></div>
-        <div className="stat-card"><span>Продано</span><b>{stats.sold}</b></div>
-        <div className="stat-card"><span>Перегляди</span><b>{fmtNum(stats.views)}</b></div>
-        <div className="stat-card"><span>Середній час продажу</span><b>{avgSellDays !== null ? `${avgSellDays} дн.` : "—"}</b></div>
-        <div className="stat-card"><span>Збережень в обране</span><b>{favoritesTotal}</b></div>
+      <div className="cab-stats-row">
+        {stats.map((s) => {
+          const Icon = s.icon;
+          return (
+            <div className="cab-stat-card" key={s.label}>
+              <div className="cab-stat-icon"><Icon size={15} /></div>
+              <span>{s.label}</span>
+              <b>{s.value}</b>
+            </div>
+          );
+        })}
       </div>
 
-      <button className="btn primary" style={{ marginBottom: 20 }} onClick={() => setView("submit")}><Plus size={15} /> Подати нове оголошення</button>
+      {canPublish && (
+        <button className="btn primary" style={{ marginBottom: 24 }} onClick={() => setView("submit")}><Plus size={15} /> Подати нове оголошення</button>
+      )}
 
-      <div className="admin-quick-filters">
-        <button className={cabTab === "all" ? "tab active" : "tab"} onClick={() => setCabTab("all")}>Всі ({myCars.length})</button>
-        <button className={cabTab === "active" ? "tab active" : "tab"} onClick={() => setCabTab("active")}>🟢 Активні ({activeCars.length})</button>
-        <button className={cabTab === "sold" ? "tab active" : "tab"} onClick={() => setCabTab("sold")}>🟠 Продано ({soldCars.length})</button>
-        <button className={cabTab === "draft" ? "tab active" : "tab"} onClick={() => setCabTab("draft")}>🔴 Чернетки / на модерації ({draftCars.length})</button>
+      <div className="cab-tabs">
+        <button className={cabTab === "all" ? "cab-tab active" : "cab-tab"} onClick={() => setCabTab("all")}>Усі ({myCars.length})</button>
+        <button className={cabTab === "active" ? "cab-tab active" : "cab-tab"} onClick={() => setCabTab("active")}>Активні ({activeCars.length})</button>
+        <button className={cabTab === "sold" ? "cab-tab active" : "cab-tab"} onClick={() => setCabTab("sold")}>Продано ({soldCars.length})</button>
       </div>
 
       {shown.length === 0 ? (
         <div className="empty-state">Немає оголошень у цій категорії.</div>
       ) : (
-        <div className="admin-cards-grid">
+        <div className="cab-cars-grid">
           {shown.map((c) => (
-            <div className="admin-car-card" key={c.id}>
-              <div className="admin-car-photo">
+            <div className="cab-car-card" key={c.id}>
+              <div className="cab-car-photo">
                 <img src={c.photos[0]} alt="" />
                 <span className={`admin-status-badge st-${c.status || "available"}`}>
                   {STATUS_META[c.status || "available"].emoji} {STATUS_META[c.status || "available"].label}
                 </span>
+                <span className="cab-fav-badge"><Heart size={12} /> {c.favCount ?? 0}</span>
               </div>
-              <div className="admin-car-body">
-                <div className="admin-car-top">
+              <div className="cab-car-body">
+                <div className="cab-car-top">
                   <h4>{c.brand} {c.model}</h4>
                   <span className="price">{fmtPrice(c.price)}</span>
                 </div>
-                <div className="admin-car-meta">{c.year} р. · {fmtNum(c.mileage)} км · {c.city}</div>
-                <div className="admin-car-stats">
-                  <span><Eye size={13} /> {c.views}</span>
-                  <span className={c.published ? "status-tag pub" : "status-tag pend"}>{c.published ? "Опубліковано" : "На модерації"}</span>
+                <div className="admin-car-meta">{c.year} р. · {fmtNum(c.mileage)} км</div>
+                <div className="cab-car-specs">
+                  <span><Fuel size={12} /> {c.fuel}</span>
+                  <span><Cog size={12} /> {c.trans}</span>
+                  <span><GitCompareArrows size={12} /> {c.drive}</span>
                 </div>
-                <div className="admin-car-actions">
-                  <button className="btn outline" onClick={() => setStatusModalCarId(c.id)}><RefreshCw size={14} /> Змінити статус</button>
-                  <button className="icon-btn small" title="Видалити" onClick={() => setConfirmDeleteId(c.id)}><Trash2 size={15} /></button>
+                <div className="cab-car-actions">
+                  <button className="btn outline sm" onClick={() => toast("Редагування оголошень буде додано найближчим часом")}><Pencil size={13} /> Редагувати</button>
+                  <button className="btn outline sm" onClick={() => setStatusModalCarId(c.id)}><RefreshCw size={13} /> Статус</button>
+                  <button className="icon-btn small danger" title="Видалити" onClick={() => setConfirmDeleteId(c.id)}><Trash2 size={14} /></button>
                 </div>
               </div>
             </div>
@@ -2118,7 +2424,10 @@ export default function AvtoMixApp() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [cabinetTab, setCabinetTab] = useState("all");
+  const [adminTab, setAdminTab] = useState("listings");
+  const [notifications, setNotifications] = useState([]);
   const canPublish = !supabaseReady || (profile && (profile.role === "admin" || profile.role === "publisher"));
+  const isAdminUser = !supabaseReady || profile?.role === "admin";
   const [social, setSocial] = useState({
     tiktok: "https://www.tiktok.com/@romantaras777",
     telegram: "https://t.me/avtomix_lviv",
@@ -2190,6 +2499,41 @@ export default function AvtoMixApp() {
 
   // Load cars whenever auth state changes (RLS visibility can depend on role)
   useEffect(() => { fetchCars(); }, [session?.user?.id]);
+
+  // --- Сповіщення адміністратора про нові заявки ("Заявки") ---
+  const fetchNotifications = () => {
+    if (!supabaseReady || profile?.role !== "admin") return;
+    supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(30)
+      .then(({ data, error }) => { if (!error) setNotifications(data || []); });
+  };
+
+  useEffect(() => { fetchNotifications(); }, [profile?.role]);
+
+  // Real-time: адмін, який зараз у застосунку, отримує сповіщення без ручного оновлення сторінки
+  useEffect(() => {
+    if (!supabaseReady || profile?.role !== "admin") return;
+    const channel = supabase
+      .channel("admin-notifications")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload) => {
+        setNotifications((n) => [payload.new, ...n]);
+        showToast("🔔 " + payload.new.title);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.role]);
+
+  const markNotificationsRead = async (requestId) => {
+    if (!supabaseReady) return;
+    const ids = notifications.filter((n) => n.request_id === requestId && !n.is_read).map((n) => n.id);
+    if (!ids.length) return;
+    const { error } = await supabase.from("notifications").update({ is_read: true }).in("id", ids);
+    if (!error) setNotifications((ns) => ns.map((n) => (ids.includes(n.id) ? { ...n, is_read: true } : n)));
+  };
+
+  const openRequestsPanel = () => { setAdminTab("requests"); setView("admin"); };
+
+  const unreadNotifCount = notifications.filter((n) => !n.is_read).length;
 
   const onLogout = async () => {
     if (!supabaseReady) return;
@@ -2519,6 +2863,9 @@ export default function AvtoMixApp() {
         .page-simple.narrow { max-width: 780px; }
         .page-simple h2 { font-size: clamp(30px, 4.2vw, 56px); font-weight: 800; line-height: 1.15; margin-bottom: 22px; }
 
+        .admin-page.page-simple { max-width: 1200px; padding-top: 18px; }
+        .admin-page.page-simple h2 { font-size: clamp(26px, 3.2vw, 46px); font-weight: 800; margin-bottom: 26px; display: flex; align-items: center; }
+
         .detail-wrap { max-width: 1440px; margin: 0 auto; padding: 24px 24px 64px; }
         .back-link { margin-bottom: 16px; }
         .detail-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 28px; align-items: start; }
@@ -2740,33 +3087,71 @@ export default function AvtoMixApp() {
         .main-photo-tag { position: absolute; bottom: 3px; left: 3px; background: var(--accent); color: var(--accent-text); font-size: 9px; padding: 1px 5px; border-radius: 3px; }
         .photo-remove { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.6); border: none; color: #fff; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 26px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 34px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 14px 16px; transition: transform .18s ease, border-color .18s ease; }
+        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
         .stat-card span { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-        .stat-card b { font-family: var(--font-mono); font-size: 22px; font-weight: 500; }
-        .admin-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-        .tab { background: none; border: none; padding: 10px 16px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
-        .tab.active { color: var(--accent); border-color: var(--accent); }
+        .stat-card b { font-family: var(--font-mono); font-size: 26px; font-weight: 700; color: var(--text); }
+        .admin-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 24px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .admin-tabs::-webkit-scrollbar { display: none; }
+        .tab { background: none; border: none; padding: 10px 16px; font-size: 13.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; flex-shrink: 0; transition: color .2s ease, border-color .2s ease; display: inline-flex; align-items: center; }
+        .tab:hover:not(.active) { color: var(--text); }
+        .tab.active { color: var(--text); border-color: var(--accent); }
+        .tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; padding: 0 5px; margin-left: 6px; background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 700; border-radius: 20px; }
         .admin-quick-filters { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
         .admin-table-wrap { overflow-x: auto; }
-        .admin-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
-        .admin-car-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-        .admin-car-photo { position: relative; height: 150px; }
+        .admin-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 14px; }
+        .admin-car-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+        .admin-car-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 14px 32px rgba(0,0,0,0.3); }
+        .admin-car-photo { position: relative; height: 138px; }
         .admin-car-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .admin-status-badge { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(6px); }
         .admin-status-badge.st-available { background: rgba(62,203,106,0.85); color: #052b12; }
         .admin-status-badge.st-reserved { background: rgba(245,166,35,0.9); color: #241800; }
-        .admin-status-badge.st-in_transit { background: rgba(46,124,246,0.88); color: #04122c; }
-        .admin-status-badge.st-sold { background: rgba(255,122,26,0.9); color: #241000; }
-        .admin-car-body { padding: 14px 16px 16px; }
+        .admin-status-badge.st-in_transit { background: rgba(90,140,255,0.9); color: #041233; }
+        .admin-status-badge.st-sold { background: rgba(150,150,150,0.85); color: #1a1a1a; }
+        .admin-car-body { padding: 13px 15px 15px; }
         .admin-car-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
         .admin-car-top h4 { font-size: 15px; margin: 0; }
         .admin-car-top .price { font-family: var(--font-mono); color: var(--accent); font-size: 13.5px; white-space: nowrap; }
         .admin-car-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
         .admin-car-stats { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
         .admin-car-stats span { display: flex; align-items: center; gap: 4px; }
-        .admin-car-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
-        .admin-car-actions .btn.outline { flex: 1; justify-content: center; padding: 9px 10px; font-size: 12.5px; }
+
+        .cab-stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 22px; }
+        .cab-stat-card { background: #15191f; border: 1px solid var(--border); border-radius: 14px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+        .cab-stat-icon { width: 26px; height: 26px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+        .cab-stat-card span { font-size: 11.5px; color: var(--text-muted); line-height: 1.3; }
+        .cab-stat-card b { font-size: 22px; font-weight: 700; color: #fff; }
+        @media (max-width: 1200px) { .cab-stats-row { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 560px) { .cab-stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+        .cab-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+        .cab-tab { background: none; border: none; padding: 10px 18px; font-size: 14.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.2s ease, border-color 0.2s ease; }
+        .cab-tab.active { color: #fff; border-color: var(--accent); }
+        .cab-tab:hover { color: var(--accent); }
+
+        .cab-cars-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+        @media (max-width: 1300px) { .cab-cars-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 900px) { .cab-cars-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 560px) { .cab-cars-grid { grid-template-columns: 1fr; } }
+        .cab-car-card { background: #15191f; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: transform 0.2s ease, border-color 0.2s ease; }
+        .cab-car-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+        .cab-car-photo { position: relative; height: 150px; }
+        .cab-car-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .cab-fav-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); color: #fff; font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+        .cab-car-body { padding: 14px 16px 16px; }
+        .cab-car-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+        .cab-car-top h4 { font-size: 16px; margin: 0; }
+        .cab-car-top .price { font-family: var(--font-mono); color: var(--accent); font-size: 15px; font-weight: 700; white-space: nowrap; }
+        .cab-car-specs { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+        .cab-car-specs span { display: flex; align-items: center; gap: 4px; }
+        .cab-car-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+        .cab-car-actions .btn.sm { flex: 1; justify-content: center; }
+        .icon-btn.small.danger { color: #ff5a5a; border-color: rgba(255,90,90,0.35); }
+        .icon-btn.small.danger:hover { background: rgba(255,90,90,0.12); }
+        .admin-car-actions { display: flex; align-items: center; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+        .admin-car-actions .btn.sm { flex: 1; justify-content: center; padding: 7px 10px; font-size: 12px; min-height: 30px; }
         .icon-btn.hot-active { background: linear-gradient(135deg, #FF7A1A, #FF3D1F); border-color: transparent; color: #fff; }
         .status-modal { max-width: 340px; }
         .status-modal-options { display: flex; flex-direction: column; gap: 8px; }
@@ -2780,7 +3165,82 @@ export default function AvtoMixApp() {
         .status-tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
         .status-tag.pub { background: rgba(60,180,90,0.15); color: #3ecb6a; }
         .status-tag.pend { background: rgba(255,150,0,0.15); color: var(--accent); }
+        .status-tag.req-st-new { background: rgba(255,122,26,0.15); color: var(--accent); }
+        .status-tag.req-st-in_progress { background: rgba(90,140,255,0.15); color: #6c9fff; }
+        .status-tag.req-st-contacted { background: rgba(178,107,255,0.15); color: #b26bff; }
+        .status-tag.req-st-completed { background: rgba(62,203,106,0.15); color: #3ecb6a; }
+        .status-tag.req-st-cancelled { background: rgba(255,90,90,0.15); color: #ff5a5a; }
         .admin-actions { display: flex; gap: 6px; }
+
+        /* --- Заявки (requests) --- */
+        .requests-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+        .requests-subtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+        .subtab { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: color .2s ease, border-color .2s ease, background .2s ease; white-space: nowrap; }
+        .subtab:hover { color: var(--text); border-color: var(--accent); }
+        .subtab.active { color: var(--accent-text); background: var(--accent); border-color: var(--accent); }
+        .requests-search { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; min-width: 220px; }
+        .requests-search input { border: none; background: none; outline: none; color: var(--text); font-size: 13px; width: 100%; padding: 0; }
+        .requests-search .search-ic { color: var(--text-muted); flex-shrink: 0; }
+        .requests-list { display: flex; flex-direction: column; gap: 10px; }
+        .request-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 14px 16px; transition: border-color .18s ease, transform .18s ease; flex-wrap: wrap; }
+        .request-row:hover { border-color: var(--accent); transform: translateY(-1px); }
+        .request-row.unread { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+        .request-row-main { min-width: 0; flex: 1 1 320px; }
+        .request-row-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+        .request-id { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+        .request-row-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+        .request-row-phone { font-weight: 500; color: var(--text-muted); font-size: 13px; margin-left: 6px; }
+        .request-row-car { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+        .request-row-meta { display: flex; gap: 14px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+        .request-row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+        .request-date { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+        .request-modal { max-width: 460px; text-align: left; width: 100%; }
+        .request-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+        .request-modal-section { margin-bottom: 16px; }
+        .request-modal-section h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin-bottom: 10px; }
+        .request-modal-section label { display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+        .request-modal-section select { width: 100%; }
+        .request-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+        .request-modal-grid span { display: block; font-size: 11.5px; color: var(--text-muted); margin-bottom: 2px; }
+        .request-modal-grid b { font-size: 14px; font-weight: 600; }
+        .request-modal-comment { margin-top: 10px; }
+        .request-modal-comment span { display: block; font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
+        .request-modal-comment p { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+        .request-modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--border); }
+        .request-created { font-size: 11.5px; color: var(--text-muted); }
+
+        /* --- Сповіщення (bell dropdown) --- */
+        .notif-wrap { position: relative; }
+        .notif-bell { position: relative; }
+        .notif-badge { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; padding: 0 4px; background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 700; border-radius: 20px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .notif-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 320px; max-width: 90vw; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 20px 45px rgba(0,0,0,0.4); z-index: 60; overflow: hidden; }
+        .notif-dropdown-head { padding: 14px 16px; font-size: 13.5px; font-weight: 700; border-bottom: 1px solid var(--border); }
+        .notif-empty { padding: 24px 16px; text-align: center; color: var(--text-muted); font-size: 13px; }
+        .notif-list { max-height: 320px; overflow-y: auto; }
+        .notif-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .15s ease; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-item:hover { background: var(--bg-alt); }
+        .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); margin-top: 5px; flex-shrink: 0; }
+        .notif-item.unread .notif-dot { background: var(--accent); }
+        .notif-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+        .notif-body { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 3px; }
+        .notif-time { font-size: 11px; color: var(--text-muted); }
+        .notif-viewall { width: 100%; justify-content: center; padding: 12px; border-top: 1px solid var(--border); }
+
+        /* --- Форма "Підбір авто": повідомлення про успіх та помилки полів --- */
+        .success-box { display: flex; align-items: flex-start; gap: 12px; background: rgba(62,203,106,0.1); border: 1px solid rgba(62,203,106,0.35); color: #3ecb6a; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; }
+        .success-box b { display: block; margin-bottom: 3px; color: #3ecb6a; }
+        .success-box p { color: rgba(62,203,106,0.85); font-size: 13.5px; margin: 0; }
+        .input-error { border-color: #ff5a5a !important; }
+        .field-error { display: block; color: #ff5a5a; font-size: 12px; margin-top: 4px; }
+
+        @media (max-width: 640px) {
+          .requests-toolbar { flex-direction: column; align-items: stretch; }
+          .requests-search { min-width: 0; }
+          .request-row { flex-direction: column; align-items: stretch; }
+          .request-row-side { flex-direction: row; align-items: center; justify-content: space-between; }
+          .notif-dropdown { position: fixed; top: 64px; right: 12px; left: 12px; width: auto; }
+        }
         .admin-panel-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
         .banner-edit-row { display: flex; gap: 16px; margin-bottom: 20px; align-items: center; }
         .banner-edit-row img { width: 140px; height: 84px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
@@ -2911,7 +3371,8 @@ export default function AvtoMixApp() {
         menuOpen={menuOpen} setMenuOpen={setMenuOpen} social={social} favCount={favorites.length} cmpCount={compareList.length} toast={showToast}
         session={session} profile={profile} onLogout={onLogout} setCabinetTab={setCabinetTab}
         myActiveCount={cars.filter((c) => session && c.ownerId === session.user.id && c.published && (c.status === "available" || c.status === "reserved" || !c.status)).length}
-        mySoldCount={cars.filter((c) => session && c.ownerId === session.user.id && c.status === "sold").length} />
+        mySoldCount={cars.filter((c) => session && c.ownerId === session.user.id && c.status === "sold").length}
+        notifications={notifications} unreadNotifCount={unreadNotifCount} onOpenRequests={openRequestsPanel} setAdminTab={setAdminTab} />
 
       {view === "home" && (
         <>
@@ -2957,7 +3418,7 @@ export default function AvtoMixApp() {
 
       {view === "cabinet" && (
         canPublish ? (
-          <MyCabinetView cars={cars} session={session} profile={profile} toast={showToast} updateCar={updateCar} deleteCar={deleteCar} setView={setView} initialTab={cabinetTab} />
+          <MyCabinetView cars={cars} session={session} profile={profile} canPublish={canPublish} toast={showToast} updateCar={updateCar} deleteCar={deleteCar} setView={setView} initialTab={cabinetTab} />
         ) : (
           <div className="page-simple narrow">
             <div className="access-gate">
@@ -2971,7 +3432,9 @@ export default function AvtoMixApp() {
       {view === "admin" && (
         (!supabaseReady || profile?.role === "admin") ? (
           <AdminView cars={cars} setCars={setCars} banner={banner} setBanner={setBanner} social={social} setSocial={setSocial}
-            toast={showToast} updateCar={updateCar} deleteCar={deleteCar} />
+            toast={showToast} updateCar={updateCar} deleteCar={deleteCar} initialTab={adminTab}
+            notifications={notifications} markNotificationsRead={markNotificationsRead} refreshNotifications={fetchNotifications}
+            requestsBadgeCount={unreadNotifCount} />
         ) : (
           <div className="page-simple narrow">
             <div className="access-gate">
