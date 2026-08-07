@@ -1569,78 +1569,12 @@ function VinCheckView({ toast }) {
       </section>
 
       {result && (
-        <>
-          <div className="passport-demo-banner">
-            <Sparkles size={16} />
-            <p>Нижче — приклад повного цифрового паспорта на демонстраційних даних. Реальні дані про ДТП, аукціони і фото з'являться після підключення офіційного постачальника історії авто (наприклад bidfax.info або Carfax). Розшифровка марки, моделі й двигуна вище — реальна, з відкритої бази NHTSA.</p>
+        <section className="passport-section">
+          <h3>Загальна інформація <span className="real-tag">реальні дані</span></h3>
+          <div className="specs-grid">
+            {fields.map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}
           </div>
-
-          <section className="passport-section">
-            <h3>Загальна інформація <span className="real-tag">реальні дані</span></h3>
-            <div className="specs-grid">
-              {fields.map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}
-            </div>
-          </section>
-
-          <section className="passport-section">
-            <h3>Швидкий огляд <span className="demo-tag">приклад</span></h3>
-            <div className="quickcheck-grid">
-              {demoChecks.map((c, i) => (
-                <div key={i} className={c.ok ? "quickcheck-card ok" : "quickcheck-card warn"}>
-                  {c.ok ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-                  <span>{c.label}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="passport-section">
-            <h3>Фото автомобіля <span className="demo-tag">приклад</span></h3>
-            <div className="passport-gallery">
-              {demoPhotos.map((p, i) => (
-                <img key={i} src={p} alt="" onClick={() => { setGalleryIdx(i); setGalleryOpen(true); }} />
-              ))}
-            </div>
-          </section>
-
-          <section className="passport-section">
-            <h3>Історія автомобіля <span className="demo-tag">приклад</span></h3>
-            <div className="passport-timeline">
-              {demoTimeline.map((t, i) => (
-                <div className="timeline-item" key={i}>
-                  <div className="timeline-dot" />
-                  <div className="timeline-year">{t.year}</div>
-                  <div className="timeline-text">{t.text}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="passport-section">
-            <h3>Карта переміщення <span className="demo-tag">приклад</span></h3>
-            <div className="passport-route">
-              {demoRoute.map((r, i) => (
-                <React.Fragment key={i}>
-                  <span className="route-stop">{r}</span>
-                  {i < demoRoute.length - 1 && <Navigation size={14} className="route-arrow" />}
-                </React.Fragment>
-              ))}
-            </div>
-          </section>
-
-          <section className="passport-section ai-block">
-            <div className="ai-block-icon"><Sparkles size={22} /></div>
-            <div>
-              <h3>Висновок AvtoMix AI <span className="demo-tag">приклад</span></h3>
-              <p>На основі знайдених даних автомобіль мав одну страхову подію у 2022 році. Пошкодження були локальними, критичних дефектів не виявлено. Ознак скручування пробігу немає. Документи відповідають історії реєстрацій. Загальна рекомендація — автомобіль вартий уваги, але перед покупкою бажано провести технічний огляд.</p>
-              <div className="passport-actions">
-                <button className="btn primary" onClick={() => toast("Повний PDF-звіт буде доступний після підключення офіційного постачальника даних історії авто")}><Download size={15} /> Завантажити PDF-звіт</button>
-                <button className="btn outline" onClick={() => { navigator.clipboard?.writeText(window.location.href); toast("Посилання скопійовано"); }}><Share2 size={15} /> Поділитися звітом</button>
-                <button className="btn outline" onClick={() => toast("Додано в обране")}><Heart size={15} /> Додати до обраного</button>
-              </div>
-            </div>
-          </section>
-        </>
+        </section>
       )}
 
       <div className="bidfax-highlight">
@@ -1657,7 +1591,7 @@ function VinCheckView({ toast }) {
         </a>
       </div>
 
-      <p className="vin-disclaimer">Базова розшифровка виконується через відкриту базу даних NHTSA (США) і працює для більшості VIN, виданих у Північній Америці. Дані про ДТП, аукціони та фото авто bidfax.info надає окремо на своєму сайті. Розділи з позначкою «приклад» показують демонстраційні дані для ілюстрації майбутньої функції.</p>
+      <p className="vin-disclaimer">Базова розшифровка виконується через відкриту базу даних NHTSA (США) і працює для більшості VIN, виданих у Північній Америці. Дані про ДТП, аукціони та фото авто bidfax.info надає окремо на своєму сайті.</p>
 
       {galleryOpen && (
         <div className="lightbox" onClick={() => setGalleryOpen(false)}>
@@ -2583,7 +2517,7 @@ export default function AvtoMixApp() {
 
         .page-simple { max-width: 1440px; margin: 0 auto; padding: 36px 24px 64px; }
         .page-simple.narrow { max-width: 780px; }
-        .page-simple h2 { font-size: 56px; font-weight: 800; line-height: 1.15; margin-bottom: 22px; }
+        .page-simple h2 { font-size: clamp(30px, 4.2vw, 56px); font-weight: 800; line-height: 1.15; margin-bottom: 22px; }
 
         .detail-wrap { max-width: 1440px; margin: 0 auto; padding: 24px 24px 64px; }
         .back-link { margin-bottom: 16px; }
@@ -2672,14 +2606,14 @@ export default function AvtoMixApp() {
         .insurance-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
         .insurance-card-tag { position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--accent); }
         .insurance-card-icon { width: 48px; height: 48px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
-        .insurance-card h4 { margin: 0; font-size: 17px; }
+        .insurance-card h4 { margin: 0; font-size: 20px; font-weight: 700; }
         .insurance-card p { margin: 0 0 10px; font-size: 13px; color: var(--text-muted); line-height: 1.5; flex: 1; }
 
         .insurance-page { padding-bottom: 20px; }
         .breadcrumb-wrap { padding-top: 18px; padding-bottom: 0; }
         .breadcrumb { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
         .breadcrumb span:last-child { color: var(--text); }
-        .section-title { font-size: 26px; margin: 0 0 4px; }
+        .section-title { font-size: clamp(24px, 3vw, 38px); font-weight: 700; margin: 0 0 4px; }
         .section-head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
         .recent-sales-wrap { padding-top: 8px; }
         .recent-sales-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 18px; }
