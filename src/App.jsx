@@ -7,7 +7,7 @@ import {
   Gauge, Fuel, Cog, Palette, User, ImageIcon, ArrowUpDown, LayoutGrid, List, Loader2,
   ExternalLink, ShieldCheck, AlertTriangle, LogIn, LogOut, Lock, Maximize2,
   Award, RefreshCw, Umbrella, KeyRound, Globe, HeartPulse, ShieldAlert, Car, FileText, Zap, ChevronDown,
-  Sparkles, Download, CheckCircle2, XCircle, Fingerprint, Clock, Navigation, ScanLine, Camera, Route
+  Sparkles, Download, CheckCircle2, XCircle, Fingerprint, Clock, Navigation, ScanLine, Camera, Route, Flame
 } from "lucide-react";
 
 const BRANDS = [
@@ -277,7 +277,7 @@ function FeaturesRow({ setView }) {
             <div key={it.title} className={it.view ? "feature-card clickable" : "feature-card"} onClick={it.view ? () => setView(it.view) : undefined}>
               <div className="feature-icon"><Icon size={20} /></div>
               <div>
-                <h4>{it.title}</h4>
+                <h4 className={it.text ? "stat-value" : ""}>{it.title}</h4>
                 {it.text && <span className="feature-tag">{it.text}</span>}
                 <p>{it.sub}</p>
               </div>
@@ -401,8 +401,11 @@ function CarCard({ car, isFav, onToggleFav, isCmp, onToggleCmp, onOpen, layout =
         <button className={isFav ? "fav-btn active" : "fav-btn"} onClick={(e) => { e.stopPropagation(); onToggleFav(car.id); }} aria-label="Додати в обране">
           <Heart size={16} fill={isFav ? "currentColor" : "none"} />
         </button>
-        {!car.published && car.status !== "sold" && car.status !== "reserved" && <span className="pending-tag">На модерації</span>}
-        {car.status === "reserved" && <span className="reserved-tag">ЗАБРОНЬОВАНО</span>}
+        <div className="card-badges-topleft">
+          {car.hot && <span className="hot-badge"><Flame size={11} /> Гаряча пропозиція</span>}
+          {!car.published && car.status !== "sold" && car.status !== "reserved" && <span className="pending-tag">На модерації</span>}
+          {car.status === "reserved" && <span className="reserved-tag">ЗАБРОНЬОВАНО</span>}
+        </div>
         {car.status === "sold" && <span className="sold-ribbon">ПРОДАНО</span>}
       </div>
       <div className="car-card-body">
@@ -1444,7 +1447,7 @@ function ContactsView({ social, toast }) {
 
           <div className="contact-card map-card">
             <div className="map-section-head">
-              <h3 style={{ margin: 0 }}>Як нас знайти</h3>
+              <h3 style={{ margin: 0, fontSize: 36, fontWeight: 700 }}>Як нас знайти</h3>
               <a className="btn outline sm" href="https://www.google.com/maps/place/49.8122096,24.1435555" target="_blank" rel="noreferrer">
                 <ExternalLink size={14} /> Google Maps
               </a>
@@ -1886,6 +1889,9 @@ function AdminView({ cars, setCars, banner, setBanner, social, setSocial, toast,
                 </div>
                 <div className="admin-car-actions">
                   <button className="btn outline" onClick={() => setStatusModalCarId(c.id)}><RefreshCw size={14} /> Змінити статус</button>
+                  <button className={c.hot ? "icon-btn small hot-active" : "icon-btn small"} title={c.hot ? "Прибрати «Гарячу пропозицію»" : "Позначити «Гарячою пропозицією»"} onClick={() => patchCar(c.id, { hot: !c.hot })}>
+                    <Flame size={15} />
+                  </button>
                   <button className="icon-btn small" title={c.published ? "Приховати" : "Опублікувати"} onClick={() => patchCar(c.id, { published: !c.published })}>
                     {c.published ? <Eye size={15} /> : <Check size={15} />}
                   </button>
@@ -2189,11 +2195,11 @@ export default function AvtoMixApp() {
     slides: [
       { image: "/hero-slide-1.png", eyebrow: "AVTO MIX · ЛЬВІВ ТА ЛЬВІВСЬКА ОБЛАСТЬ", title: "Знайдіть своє наступне авто",
         subtitle: "Переглядайте актуальні оголошення, користуйтеся VIN-перевіркою та знаходьте автомобілі у Львові й Львівській області.",
-        bgSize: "auto 100%", bgPosition: "right", bgColor: "#0D0F14",
+        bgSize: "auto 118%", bgPosition: "right", bgColor: "#0D0F14",
         primaryLabel: "Переглянути автомобілі", primaryView: "catalog", secondaryLabel: "VIN-перевірка", secondaryView: "vin" },
       { image: "/hero-slide-2.png", eyebrow: "AVTO MIX · ПРОДАЖ АВТО", title: "Продайте авто швидко та без зайвих клопотів",
         subtitle: "Додайте оголошення за кілька хвилин, а покупці знайдуть вас. Перед покупкою перевіряйте автомобіль за VIN.",
-        bgSize: "auto 100%", bgPosition: "right", bgColor: "#0D0F14",
+        bgSize: "auto 118%", bgPosition: "right", bgColor: "#0D0F14",
         primaryLabel: "Подати оголошення", primaryView: "submit", secondaryLabel: "Як це працює?", secondaryView: "contacts" },
       { image: "/insurance-banner.png", title: "Всі види автострахування", subtitle: "Автоцивілка, Зелена карта, ДЦВ — оформимо поліс за кілька хвилин, без відвідування офісу",
         hideEyebrow: true,
@@ -2212,7 +2218,8 @@ export default function AvtoMixApp() {
     published: row.published, views: row.views || 0, createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
     status: row.status || "available", transitStage: row.transit_stage ?? 0,
     originCountry: row.origin_country || "", etaLabel: row.eta_label || "",
-    soldAt: row.sold_at ? new Date(row.sold_at).getTime() : null
+    soldAt: row.sold_at ? new Date(row.sold_at).getTime() : null,
+    hot: row.hot || false
   });
   const carToDb = (data) => ({
     brand: data.brand, model: data.model, trim: data.trim || "", year: data.year, vin: data.vin || null,
@@ -2221,7 +2228,7 @@ export default function AvtoMixApp() {
     description: data.desc, price: data.price, city: data.city, phone: data.phone,
     telegram: data.telegram || null, viber: data.viber || null, whatsapp: data.whatsapp || null,
     tiktok_url: data.tiktokUrl || null, photos: data.photos || [], published: data.published ?? false, views: data.views ?? 0,
-    status: data.status || "available"
+    status: data.status || "available", hot: data.hot || false
   });
 
   const fetchCars = async () => {
@@ -2296,6 +2303,7 @@ export default function AvtoMixApp() {
         else if (k === "status") dbPatch.status = patch.status;
         else if (k === "soldAt") dbPatch.sold_at = patch.soldAt ? new Date(patch.soldAt).toISOString() : null;
         else if (k === "transitStage") dbPatch.transit_stage = patch.transitStage;
+        else if (k === "hot") dbPatch.hot = patch.hot;
       });
       const { error } = await supabase.from("cars").update(dbPatch).eq("id", id);
       if (error) { showToast(error.message); return; }
@@ -2325,8 +2333,8 @@ export default function AvtoMixApp() {
     <div className="app-root" data-theme={theme}>
       <style>{`
         .app-root {
-          --font-display: 'Oswald', sans-serif;
-          --font-body: 'Inter', sans-serif;
+          --font-display: 'Manrope', sans-serif;
+          --font-body: 'Manrope', sans-serif;
           --font-mono: 'JetBrains Mono', monospace;
           --radius: 8px;
           font-family: var(--font-body);
@@ -2356,7 +2364,7 @@ export default function AvtoMixApp() {
           transform: skewX(-20deg); transition: left 0.6s ease;
         }
         .app-root[data-theme="dark"] .btn.primary:hover::after { left: 130%; }
-        .app-root[data-theme="dark"] .btn.primary:hover { box-shadow: 0 0 35px rgba(255,122,26,0.45); opacity: 1; transform: translateY(-2px) scale(1.03); }
+        .app-root[data-theme="dark"] .btn.primary:hover { box-shadow: 0 6px 24px rgba(255,122,26,0.4); opacity: 1; transform: translateY(-3px); }
         .app-root[data-theme="dark"] .btn.outline {
           background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12);
           backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -2375,24 +2383,24 @@ export default function AvtoMixApp() {
           background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--accent-text);
         }
         .app-root[data-theme="dark"] .car-card { border-color: rgba(255,255,255,0.05); box-shadow: 0 20px 45px rgba(0,0,0,0.35); }
-        .app-root[data-theme="dark"] .car-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 24px 55px rgba(0,0,0,0.45); transform: translateY(-8px); background: var(--surface-2); }
+        .app-root[data-theme="dark"] .car-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 24px 55px rgba(0,0,0,0.45); transform: translateY(-8px) scale(1.02); background: var(--surface-2); }
         .app-root[data-theme="dark"] .car-card-img img { transition: transform 0.4s ease, filter 0.4s ease; }
         .app-root[data-theme="dark"] .car-card:hover .car-card-img img { transform: scale(1.08); filter: brightness(1.05); }
         .app-root[data-theme="dark"] .fav-btn.active,
         .app-root[data-theme="dark"] .fav-btn.static.active { color: var(--accent-2); }
-        .app-root { background: var(--bg); color: var(--text); font-weight: 500; }
+        .app-root { background: var(--bg); color: var(--text); font-weight: 500; line-height: 1.5; }
         .app-root * { box-sizing: border-box; }
         .accent-text { color: var(--accent); }
         a { color: inherit; text-decoration: none; }
-        h1 { font-family: var(--font-display); font-weight: 900; letter-spacing: -0.5px; margin: 0; }
-        h2 { font-family: var(--font-display); font-weight: 800; letter-spacing: 0.2px; margin: 0; }
-        h3, h4 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.2px; margin: 0; }
-        p { margin: 0; }
+        h1 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+        h2 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0; margin: 0; }
+        h3, h4 { font-family: var(--font-display); font-weight: 700; letter-spacing: 0; margin: 0; }
+        p { margin: 0; font-size: 17px; font-weight: 400; line-height: 1.8; color: var(--text-muted); }
         .desktop-only { display: flex; }
         .mobile-only { display: none; }
         @media (max-width: 860px) { .desktop-only { display: none !important; } .mobile-only { display: inline-flex !important; } }
 
-        .btn { font-family: var(--font-body); font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: var(--radius); border: 1.5px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: transform .12s ease, opacity .12s ease; }
+        .btn { font-family: var(--font-body); font-weight: 700; font-size: 16px; padding: 16px 24px; min-height: 55px; border-radius: 14px; border: 1.5px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease; }
         .btn:active { transform: scale(0.97); }
         .btn.primary { background: var(--accent); color: var(--accent-text); }
         .btn.primary:hover { opacity: 0.88; }
@@ -2400,7 +2408,7 @@ export default function AvtoMixApp() {
         .btn.outline:hover { border-color: var(--accent); color: var(--accent); }
         .btn.ghost { background: transparent; color: var(--header-text); border-color: transparent; }
         .btn.ghost:hover { opacity: 0.75; }
-        .btn.lg { padding: 13px 24px; font-size: 15px; }
+        .btn.lg { padding: 17px 30px; font-size: 17px; min-height: 58px; }
         .oauth-btn { width: 100%; padding: 13px 20px; font-size: 15px; font-weight: 600; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
         .oauth-btn:hover { background: var(--bg-alt); }
         .btn.block { width: 100%; justify-content: center; }
@@ -2424,8 +2432,8 @@ export default function AvtoMixApp() {
         .logo-mix { color: var(--accent); }
         .footer-logo .logo-word { font-size: 34px; }
         .main-nav { gap: 4px; margin-left: 8px; }
-        .nav-link { background: none; border: none; color: #c9c9c9; font-weight: 600; font-size: 14.5px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap; }
-        .nav-link:hover { color: var(--header-text); }
+        .nav-link { background: none; border: none; color: #c9c9c9; font-weight: 600; font-size: 16px; letter-spacing: 0.2px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; white-space: nowrap; transition: color 0.25s ease, transform 0.25s ease; }
+        .nav-link:hover { transform: scale(1.03); color: var(--accent); }
         .nav-link.active { color: var(--accent); background: rgba(255,255,255,0.05); }
         .badge { background: var(--accent); color: var(--accent-text); font-size: 10px; border-radius: 20px; padding: 1px 6px; margin-left: 5px; }
         .header-icon { position: relative; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); color: var(--header-text); }
@@ -2464,7 +2472,7 @@ export default function AvtoMixApp() {
         }
 
         .hero { position: relative; overflow: hidden; }
-        .hero-slide { height: 460px; position: relative; display: flex; align-items: center; overflow: hidden; }
+        .hero-slide { height: 740px; position: relative; display: flex; align-items: flex-end; padding-bottom: 64px; overflow: hidden; }
         .hero-bg { position: absolute; inset: -12px; background-size: cover; background-position: center; animation: kenburns 14s ease-in-out infinite alternate; will-change: transform; }
         .hero-overlay { position: absolute; inset: 0; }
         @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
@@ -2473,7 +2481,7 @@ export default function AvtoMixApp() {
         .hero-warm-glow { position: absolute; top: 8%; right: 4%; width: 46%; max-width: 620px; aspect-ratio: 1; background: radial-gradient(circle, rgba(255,122,26,0.30) 0%, rgba(255,90,31,0.12) 40%, transparent 70%); filter: blur(10px); pointer-events: none; }
         .hero-content { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; color: #fff; }
         .hero-eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
-        .hero-title { font-size: 72px; line-height: 1.02; letter-spacing: -1.5px; max-width: 680px; }
+        .hero-title { font-size: 64px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; max-width: 680px; }
         .hero-sub { font-size: 17px; margin-top: 14px; max-width: 480px; opacity: 0.92; }
         .hero-actions { display: flex; gap: 12px; margin-top: 26px; }
         .hero-search { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 14px; padding: 12px; max-width: 720px; }
@@ -2485,10 +2493,13 @@ export default function AvtoMixApp() {
         .hero-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
         .dot { width: 22px; height: 3px; background: rgba(255,255,255,0.4); border: none; cursor: pointer; }
         .dot.active { background: var(--accent); }
+        @media (max-width: 900px) {
+          .hero-title { font-size: 52px; }
+        }
         @media (max-width: 640px) {
           .hero-slide { height: 380px; }
           .hero-eyebrow { font-size: 10.5px; margin-bottom: 10px; }
-          .hero-title { font-size: 30px; max-width: 100%; }
+          .hero-title { font-size: 40px; max-width: 100%; }
           .hero-sub { font-size: 14px; max-width: 100%; }
           .hero-actions { flex-direction: column; align-items: stretch; gap: 10px; margin-top: 18px; }
           .hero-actions .btn { justify-content: center; }
@@ -2496,10 +2507,10 @@ export default function AvtoMixApp() {
           .hero-arrow.left { left: 10px; } .hero-arrow.right { right: 10px; }
         }
 
-        .catalog-wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px 64px 16px; display: flex; gap: 18px; align-items: flex-start; }
+        .catalog-wrap { max-width: 1280px; margin: 0 auto; padding: 56px 24px 64px 16px; display: flex; gap: 18px; align-items: flex-start; }
         .catalog-main { flex: 1; min-width: 0; }
         .catalog-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-        .catalog-head h2 { font-size: 24px; }
+        .catalog-head h2 { font-size: 36px; font-weight: 700; }
         .count { color: var(--text-muted); font-size: 13px; white-space: nowrap; }
         .catalog-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
         .sort-wrap { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1.5px solid var(--accent); border-radius: 8px; padding: 0 10px; color: var(--accent); }
@@ -2527,10 +2538,10 @@ export default function AvtoMixApp() {
         @media (max-width: 1000px) { .cars-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { .cars-grid { grid-template-columns: 1fr; } }
         .catalog-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
-        .cat-tab { background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 14px; padding: 10px 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; border-bottom: 2.5px solid transparent; margin-bottom: -2px; }
+        .cat-tab { background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 16px; padding: 12px 8px; cursor: pointer; display: flex; align-items: center; gap: 7px; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.25s ease, border-color 0.25s ease; }
         .cat-tab:hover { color: var(--text); }
-        .cat-tab.active { color: var(--accent); border-color: var(--accent); }
-        .cat-tab-count { background: var(--bg-alt); color: var(--text-muted); font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 20px; }
+        .cat-tab.active { color: #FF8A34; border-color: var(--accent); font-weight: 700; }
+        .cat-tab-count { background: var(--bg-alt); color: var(--text-muted); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 20px; transition: background 0.25s ease, color 0.25s ease; }
         .cat-tab.active .cat-tab-count { background: var(--accent); color: var(--accent-text); }
         .transit-card { cursor: pointer; }
         .transit-tag { position: absolute; left: 10px; top: 10px; background: #2E7CF6; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
@@ -2554,16 +2565,18 @@ export default function AvtoMixApp() {
         .fav-btn.active { color: var(--accent); }
         .fav-btn.static { position: static; background: var(--bg-alt); color: var(--text); border: 1px solid var(--border); }
         .fav-btn.static.active { color: var(--accent); border-color: var(--accent); }
-        .pending-tag { position: absolute; left: 10px; top: 10px; background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
-        .reserved-tag { position: absolute; left: 10px; top: 10px; background: #F5A623; color: #1a1a1a; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .card-badges-topleft { position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 2; }
+        .pending-tag { background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .reserved-tag { background: #F5A623; color: #1a1a1a; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .hot-badge { display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #FF7A1A, #FF3D1F); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; box-shadow: 0 3px 10px rgba(255,61,31,0.4); white-space: nowrap; }
         .sold-ribbon { position: absolute; top: 14px; left: -34px; transform: rotate(-45deg); background: #FF7A1A; color: #0a0a0a; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; padding: 4px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
         .sold-date-line { margin-top: 10px; font-size: 12px; font-weight: 600; color: #FF7A1A; }
         .car-card-body { padding: 14px 16px 16px; }
         .car-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-        .car-card-top h3 { font-size: 16px; }
-        .price { font-family: var(--font-mono); font-weight: 500; color: var(--accent); font-size: 15px; white-space: nowrap; }
+        .car-card-top h3 { font-size: 24px; font-weight: 700; }
+        .price { font-family: var(--font-mono); font-weight: 800; color: var(--accent); font-size: 28px; white-space: nowrap; }
         .trim { color: var(--text-muted); font-size: 12.5px; margin-top: 2px; }
-        .specs-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--text-muted); }
+        .specs-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 15px; font-weight: 500; color: var(--text-muted); }
         .specs-row span { display: flex; align-items: center; gap: 4px; }
         .car-card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 10px; gap: 8px; flex-wrap: wrap; }
         .owner-tag { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
@@ -2574,7 +2587,7 @@ export default function AvtoMixApp() {
 
         .page-simple { max-width: 1280px; margin: 0 auto; padding: 36px 24px 64px; }
         .page-simple.narrow { max-width: 780px; }
-        .page-simple h2 { font-size: 26px; margin-bottom: 22px; }
+        .page-simple h2 { font-size: 56px; font-weight: 800; line-height: 1.15; margin-bottom: 22px; }
 
         .detail-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 24px 64px; }
         .back-link { margin-bottom: 16px; }
@@ -2633,17 +2646,18 @@ export default function AvtoMixApp() {
         .vin-form { display: flex; gap: 10px; flex-wrap: wrap; }
         .vin-input { flex: 1; min-width: 220px; font-family: var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
         .bidfax-highlight { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
-        .features-row-wrap { padding-top: 28px; padding-bottom: 6px; }
+        .features-row-wrap { padding-top: 56px; padding-bottom: 32px; }
         .features-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
         @media (max-width: 1100px) { .features-row { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 460px) { .features-row { grid-template-columns: 1fr; } }
-        .feature-card { display: flex; gap: 14px; align-items: flex-start; padding: 20px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
+        .feature-card { display: flex; gap: 16px; align-items: flex-start; padding: 26px 24px; min-height: 160px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); }
         .feature-card.clickable { cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
         .feature-card.clickable:hover { transform: translateY(-3px); border-color: var(--accent); }
-        .feature-icon { width: 42px; height: 42px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .feature-card h4 { margin: 0 0 2px; font-size: 16px; }
-        .feature-tag { font-size: 12px; color: var(--text-muted); }
-        .feature-card p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .feature-icon { width: 54px; height: 54px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .feature-card h4 { margin: 0 0 2px; font-size: 22px; font-weight: 700; }
+        .feature-card h4.stat-value { font-size: 30px; font-weight: 800; }
+        .feature-tag { font-size: 18px; font-weight: 600; color: var(--text-muted); }
+        .feature-card p { margin: 4px 0 0; font-size: 15px; font-weight: 400; line-height: 1.7; color: var(--text-muted); }
         .promo-banners-wrap { padding-top: 8px; }
         .promo-banners { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .promo-card { border-radius: 16px; padding: 36px 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -2823,6 +2837,7 @@ export default function AvtoMixApp() {
         .admin-car-stats span { display: flex; align-items: center; gap: 4px; }
         .admin-car-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
         .admin-car-actions .btn.outline { flex: 1; justify-content: center; padding: 9px 10px; font-size: 12.5px; }
+        .icon-btn.hot-active { background: linear-gradient(135deg, #FF7A1A, #FF3D1F); border-color: transparent; color: #fff; }
         .status-modal { max-width: 340px; }
         .status-modal-options { display: flex; flex-direction: column; gap: 8px; }
         .status-opt { display: flex; align-items: center; gap: 8px; justify-content: flex-start; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-alt); color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; }
@@ -2847,9 +2862,9 @@ export default function AvtoMixApp() {
         .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 32px; text-align: left; }
         .footer-logo { justify-content: flex-start; }
         .footer-brand p { max-width: 320px; }
-        .footer-col h5 { font-size: 14px; margin: 0 0 14px; color: var(--text); }
+        .footer-col h5 { font-size: 18px; font-weight: 700; margin: 0 0 14px; color: var(--text); }
         .footer-col { display: flex; flex-direction: column; gap: 10px; }
-        .footer-col button { background: none; border: none; padding: 0; text-align: left; color: #b8b8b8; font-size: 13.5px; cursor: pointer; }
+        .footer-col button { background: none; border: none; padding: 0; text-align: left; color: #b8b8b8; font-size: 16px; font-weight: 500; cursor: pointer; transition: color 0.25s ease; }
         .footer-col button:hover { color: var(--accent); }
         .footer-contact-line { display: flex; align-items: center; gap: 8px; margin: 0; }
         .catalog-intro { color: var(--text-muted); font-size: 13.5px; margin-top: 4px; max-width: 560px; }
@@ -2867,7 +2882,7 @@ export default function AvtoMixApp() {
 
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 12px 22px; border-radius: 30px; font-size: 13.5px; font-weight: 600; z-index: 100; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
 
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
         /* ===== AvtoMix Auto Passport (always-dark premium page) ===== */
         .passport-page {
