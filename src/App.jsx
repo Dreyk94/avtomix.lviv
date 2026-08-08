@@ -1448,6 +1448,198 @@ function InsuranceView({ toast }) {
   );
 }
 
+function LegalPageLayout({ title, subtitle, updated, children }) {
+  return (
+    <div className="page-simple legal-page">
+      <h2>{title}</h2>
+      <p className="intro-text">{subtitle}</p>
+      <div className="legal-body">{children}</div>
+      <p className="legal-updated">Дата останнього оновлення: {updated}</p>
+    </div>
+  );
+}
+
+function ContactAdminCta({ setView }) {
+  return (
+    <div className="legal-cta">
+      <div>
+        <b>Хочете розмістити автомобіль на AvtoMix?</b>
+        <p>Публікація оголошень доступна за погодженням з адміністрацією сайту.</p>
+      </div>
+      <button className="btn primary" onClick={() => setView("contacts")}>Зв'язатися з адміністратором</button>
+    </div>
+  );
+}
+
+function UserAgreementView({ setView }) {
+  return (
+    <LegalPageLayout title="Угода користувача" subtitle="Правила користування сайтом AvtoMix" updated="серпень 2026">
+      <h3>1. Загальні положення</h3>
+      <p>AvtoMix — це онлайн-платформа автомобільного спрямування, яка використовується для представлення автомобілів, що пропонуються до продажу, а також для надання інформації про автомобілі та додаткові автомобільні послуги. Користуючись сайтом, ви погоджуєтесь з умовами цієї Угоди.</p>
+
+      <h3>2. Діяльність AvtoMix</h3>
+      <p>AvtoMix займається купівлею, продажем та перепродажем автомобілів. Інформація про конкретний автомобіль — його характеристики, комплектація, пробіг, ціна та стан — зазначається у відповідному оголошенні.</p>
+
+      <h3>3. Розміщення автомобілів</h3>
+      <p>Публікація автомобілів на сайті не є відкритою для всіх користувачів. Створювати, редагувати та публікувати оголошення можуть:</p>
+      <ul>
+        <li>адміністрація AvtoMix;</li>
+        <li>працівники та менеджери AvtoMix;</li>
+        <li>інші користувачі, яким адміністрація надала відповідний доступ.</li>
+      </ul>
+      <p>Якщо ви бажаєте розмістити автомобіль на сайті, зверніться до адміністратора AvtoMix.</p>
+      <ContactAdminCta setView={setView} />
+
+      <h3>4. Інформація про автомобілі</h3>
+      <p>Інформація в оголошеннях може містити марку та модель, рік випуску, пробіг, двигун, паливо, коробку передач, привід, комплектацію, ціну, фотографії та опис. AvtoMix має право редагувати або уточнювати інформацію перед публікацією.</p>
+
+      <h3>5. Ціна та умови продажу</h3>
+      <p>Ціна автомобіля може змінюватися. Актуальна інформація зазначається безпосередньо на сайті. Наявність автомобіля також може змінюватися.</p>
+
+      <h3>6. Перевірка автомобілів</h3>
+      <p>За можливості AvtoMix може надавати інформацію про історію автомобіля, VIN-перевірку або інші перевірки. Це не означає, що абсолютно кожен автомобіль на сайті проходить однакову перевірку.</p>
+
+      <h3>7. Підбір автомобіля</h3>
+      <p>Ви можете залишити заявку на підбір автомобіля. Після надсилання заявки представник AvtoMix може зв'язатися з вами для уточнення побажань.</p>
+
+      <h3>8. Trade-In</h3>
+      <p>Ви можете звернутися щодо обміну свого автомобіля за програмою Trade-In. Оцінка автомобіля та умови обміну узгоджуються індивідуально після звернення.</p>
+
+      <h3>9. Страхування</h3>
+      <p>Ви можете отримати інформацію або консультацію щодо страхування автомобіля через AvtoMix. Конкретні страхові партнери та умови зазначаються на сайті на момент звернення.</p>
+
+      <h3>10. Поведінка користувачів</h3>
+      <p>Використовуючи сайт, заборонено:</p>
+      <ul>
+        <li>надавати неправдиву інформацію;</li>
+        <li>використовувати сайт для шахрайства;</li>
+        <li>намагатися отримати несанкціонований доступ до системи;</li>
+        <li>поширювати шкідливий код;</li>
+        <li>використовувати сайт для спаму;</li>
+        <li>копіювати матеріали сайту без дозволу;</li>
+        <li>використовувати сайт у незаконних цілях.</li>
+      </ul>
+
+      <h3>11. Обліковий запис</h3>
+      <p>Ви відповідаєте за збереження доступу до свого акаунта. Адміністрація має право обмежити доступ до акаунта у випадку порушення правил сайту.</p>
+
+      <h3>12. Модерація</h3>
+      <p>Адміністрація AvtoMix має право редагувати інформацію, змінювати статус автомобіля, приховувати оголошення, видаляти інформацію та обмежувати доступ користувачів, які порушують правила.</p>
+
+      <h3>13. Інтелектуальна власність</h3>
+      <p>Фотографії, логотип, дизайн, тексти та інші матеріали сайту можуть бути захищені законодавством про інтелектуальну власність.</p>
+
+      <h3>14. Зміни Угоди</h3>
+      <p>AvtoMix може оновлювати цю Угоду. Актуальна версія завжди публікується на цій сторінці.</p>
+    </LegalPageLayout>
+  );
+}
+
+function PrivacyPolicyView() {
+  return (
+    <LegalPageLayout title="Політика конфіденційності" subtitle="Як AvtoMix використовує та захищає інформацію користувачів" updated="серпень 2026">
+      <h3>1. Загальні положення</h3>
+      <p>Під час використання сайту AvtoMix може обробляти певну інформацію, необхідну для роботи сайту та обробки звернень користувачів.</p>
+
+      <h3>2. Яку інформацію може отримувати AvtoMix</h3>
+      <p>Залежно від того, якими функціями сайту ви користуєтесь, це може бути:</p>
+      <ul>
+        <li>ім'я;</li>
+        <li>номер телефону;</li>
+        <li>інформація з форми заявки (підбір авто, Trade-In, страхування тощо);</li>
+        <li>інформація облікового запису (email);</li>
+        <li>інформація, яку ви добровільно залишаєте на сайті;</li>
+        <li>технічна інформація про пристрій;</li>
+        <li>IP-адреса;</li>
+        <li>cookies;</li>
+        <li>інформація про взаємодію із сайтом.</li>
+      </ul>
+
+      <h3>3. Для чого використовується інформація</h3>
+      <p>Дані можуть використовуватися для обробки заявок, зв'язку з користувачем, підбору автомобіля, консультацій, роботи особистого кабінету, забезпечення роботи сайту, покращення сервісу, безпеки та запобігання шахрайству.</p>
+
+      <h3>4. Заявки</h3>
+      <p>Якщо ви залишаєте заявку на підбір автомобіля, Trade-In, страхування чи інший сервіс, ваші контактні дані використовуються для обробки цієї заявки та зв'язку з вами.</p>
+
+      <h3>5. Cookies</h3>
+      <p>Cookies можуть використовуватися для коректної роботи сайту, збереження ваших налаштувань (наприклад, теми оформлення) та покращення користувацького досвіду.</p>
+
+      <h3>6. Захист інформації</h3>
+      <p>AvtoMix вживає розумних технічних та організаційних заходів для захисту наданої вами інформації.</p>
+
+      <h3>7. Передача інформації</h3>
+      <p>AvtoMix не передає ваші дані всім підряд. Інформація може передаватися лише у випадках, необхідних для роботи сервісу, виконання конкретної заявки, роботи залучених партнерів (наприклад, за заявкою на страхування) або відповідно до вимог законодавства.</p>
+
+      <h3>8. Права користувача</h3>
+      <p>Ви можете звернутися до адміністрації щодо інформації, яку надали сайту, у межах можливостей та вимог законодавства.</p>
+
+      <h3>9. Зміни Політики</h3>
+      <p>AvtoMix може періодично оновлювати цю Політику конфіденційності. Актуальна версія завжди публікується на цій сторінці.</p>
+    </LegalPageLayout>
+  );
+}
+
+function FaqAccordionItem({ q, a, defaultOpen }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <div className={open ? "faq-item open" : "faq-item"}>
+      <button className="faq-question" onClick={() => setOpen((o) => !o)}>
+        <span>{q}</span>
+        <ChevronDown size={18} className="faq-chevron" />
+      </button>
+      {open && <div className="faq-answer">{a}</div>}
+    </div>
+  );
+}
+
+function FaqView({ setView }) {
+  return (
+    <LegalPageLayout title="Питання та відповіді" subtitle="Відповіді на найпоширеніші питання про AvtoMix" updated="серпень 2026">
+      <h3 className="faq-cat">Про AvtoMix</h3>
+      <FaqAccordionItem q="Що таке AvtoMix?" a="AvtoMix — автомобільний сайт, який спеціалізується на купівлі, продажу та перепродажі автомобілів, а також надає додаткові автомобільні сервіси." />
+      <FaqAccordionItem q="AvtoMix — це автосалон?" a="AvtoMix — це автомобільний сервіс та онлайн-платформа, через яку ми представляємо автомобілі, що пропонуються до продажу, та надаємо додаткові послуги для автомобілістів." />
+      <FaqAccordionItem q="Чи можна купити автомобіль через AvtoMix?" a="Так. Ви можете переглянути автомобілі на сайті та зв'язатися з AvtoMix щодо конкретного автомобіля." />
+      <FaqAccordionItem q="Чи всі автомобілі на сайті належать AvtoMix?" a="Інформація про продавця та конкретні умови продажу зазначаються для відповідного автомобіля. Рекомендуємо уточнювати актуальну інформацію перед купівлею." />
+
+      <h3 className="faq-cat">Оголошення</h3>
+      <FaqAccordionItem q="Чи можу я самостійно додати автомобіль?" a={<>Публікація оголошень на AvtoMix доступна не для всіх користувачів. Якщо ви хочете розмістити автомобіль на сайті, зверніться до адміністратора AvtoMix.<br /><button className="btn outline" style={{ marginTop: 12 }} onClick={() => setView("contacts")}>Зв'язатися з адміністратором</button></>} />
+      <FaqAccordionItem q="Чому я не бачу кнопки «Подати оголошення»?" a="Публікація автомобілів доступна лише адміністрації та користувачам, яким надано відповідний доступ." />
+      <FaqAccordionItem q="Чи можна змінити інформацію про автомобіль?" a="Так, зміни можуть вноситися адміністрацією або користувачами, які мають відповідні права доступу." />
+
+      <h3 className="faq-cat">Покупка</h3>
+      <FaqAccordionItem q="Як придбати автомобіль?" a="Оберіть автомобіль у каталозі та зв'яжіться з нами за вказаним на сторінці оголошення номером телефону — ми відповімо на всі запитання та узгодимо деталі." />
+      <FaqAccordionItem q="Як дізнатися актуальну ціну?" a="Актуальна ціна завжди вказана безпосередньо на сторінці оголошення." />
+      <FaqAccordionItem q="Як дізнатися, чи автомобіль ще в наявності?" a="Статус автомобіля («У наявності», «Заброньовано», «В дорозі» або «Продано») відображається на картці та сторінці оголошення." />
+      <FaqAccordionItem q="Як зв'язатися щодо автомобіля?" a="Номер телефону для зв'язку вказаний на сторінці кожного оголошення." />
+
+      <h3 className="faq-cat">VIN-перевірка</h3>
+      <FaqAccordionItem q="Що таке VIN-перевірка?" a="Це розшифровка VIN-коду автомобіля, яка дозволяє дізнатися базові технічні дані — марку, модель, рік, двигун та інше." />
+      <FaqAccordionItem q="Яку інформацію можна отримати за VIN?" a="Базову інформацію з відкритої бази даних NHTSA. Для повної історії (аукціони, ДТП, фото) сайт пропонує перехід до спеціалізованого партнерського сервісу." />
+      <FaqAccordionItem q="Чи перевіряється кожен автомобіль?" a="За можливості AvtoMix надає інформацію про історію автомобіля, однак це не означає, що абсолютно кожен автомобіль на сайті проходить однакову перевірку." />
+
+      <h3 className="faq-cat">Підбір авто</h3>
+      <FaqAccordionItem q="Як працює підбір автомобіля?" a="Ви залишаєте заявку із зазначенням бажаної марки, моделі, бюджету, року та інших побажань. Після отримання заявки представник AvtoMix може зв'язатися з вами для уточнення деталей." />
+      <FaqAccordionItem q="Що відбувається після надсилання заявки?" a="Заявка надходить до адміністративної системи AvtoMix. Після її отримання з вами можуть зв'язатися для уточнення побажань та подальшого підбору автомобіля." />
+
+      <h3 className="faq-cat">Trade-In</h3>
+      <FaqAccordionItem q="Що таке Trade-In?" a="Це можливість обміняти свій автомобіль на інший з доплатою через AvtoMix." />
+      <FaqAccordionItem q="Чи можна запропонувати свій автомобіль в Trade-In?" a="Так, залиште заявку на сторінці Trade-In, і представник AvtoMix зв'яжеться з вами." />
+      <FaqAccordionItem q="Як відбувається оцінка автомобіля?" a="Оцінка узгоджується індивідуально після звернення та огляду автомобіля." />
+
+      <h3 className="faq-cat">Страхування</h3>
+      <FaqAccordionItem q="Чи можна оформити страхування через AvtoMix?" a="Так, на сторінці «Страхування» можна залишити заявку на потрібний вид полісу." />
+      <FaqAccordionItem q="Як отримати консультацію щодо страхування?" a="Скористайтесь кнопкою «Отримати консультацію» на сторінці «Страхування» — вона одразу з'єднає вас телефонним дзвінком." />
+
+      <h3 className="faq-cat">Безпека</h3>
+      <FaqAccordionItem q="Що робити, якщо я знайшов помилку в інформації про автомобіль?" a="Зверніться до адміністрації AvtoMix, щоб ми могли перевірити інформацію." />
+      <FaqAccordionItem
+        q="Як зв'язатися з AvtoMix?"
+        a={<>Телефони: +380 97 623 31 45, +380 63 938 81 06.<br />Або скористайтесь формою на сторінці <button className="link-btn" onClick={() => setView("contacts")}>Контакти</button>.</>}
+      />
+    </LegalPageLayout>
+  );
+}
+
 function TradeInView({ toast }) {
   const [form, setForm] = useState({ brand: "", model: "", year: "", mileage: "", condition: "Добрий", phone: "", city: "" });
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -1518,7 +1710,7 @@ function ContactsView({ social, toast }) {
               <div className="contact-card-icon"><MapPin size={18} /></div>
               <div>
                 <span className="contact-card-label">Адреса</span>
-                <p>м. Винники</p>
+                <p>Львівська область, м. Винники</p>
               </div>
             </div>
 
@@ -1579,7 +1771,7 @@ function ContactsView({ social, toast }) {
                 <ExternalLink size={14} /> Google Maps
               </a>
             </div>
-            <p style={{ margin: "0 0 14px", color: "var(--text-muted)", fontSize: 13.5 }}>м. Винники</p>
+            <p style={{ margin: "0 0 14px", color: "var(--text-muted)", fontSize: 13.5 }}>Львівська область, м. Винники</p>
             <div className="map-embed-wrap">
               <iframe
                 className="map-embed"
@@ -2392,9 +2584,9 @@ function Footer({ social, setView }) {
         <div className="footer-col">
           <h5>Клієнтам</h5>
           <button onClick={() => setView("contacts")}>Як це працює?</button>
-          <button onClick={() => setView("contacts")}>Питання та відповіді</button>
-          <button onClick={() => setView("contacts")}>Угода користувача</button>
-          <button onClick={() => setView("contacts")}>Політика конфіденційності</button>
+          <button onClick={() => setView("faq")}>Питання та відповіді</button>
+          <button onClick={() => setView("agreement")}>Угода користувача</button>
+          <button onClick={() => setView("privacy")}>Політика конфіденційності</button>
         </div>
 
         <div className="footer-col">
@@ -2402,7 +2594,7 @@ function Footer({ social, setView }) {
           <p className="footer-contact-line"><Phone size={14} /> +380 97 623 31 45</p>
           <p className="footer-contact-line"><Phone size={14} /> +380 63 938 81 06</p>
           <p className="footer-contact-line"><Send size={14} /> info@avtomix.lviv.ua</p>
-          <p className="footer-contact-line"><MapPin size={14} /> м. Винники</p>
+          <p className="footer-contact-line"><MapPin size={14} /> Львівська область, м. Винники</p>
         </div>
       </div>
       <p className="copyright">© {new Date().getFullYear()} AvtoMix. Усі права захищені.</p>
@@ -2706,7 +2898,7 @@ export default function AvtoMixApp() {
         .header-main { max-width: 1440px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
         .logo { display: flex; align-items: center; gap: 9px; cursor: pointer; }
         .logo-word { font-family: var(--font-display); font-weight: 700; font-size: 32px; letter-spacing: 0.3px; }
-        .logo-avto { color: var(--text); }
+        .logo-avto { color: var(--accent); }
         .logo-mix { color: var(--accent); }
         .footer-logo .logo-word { font-size: 34px; }
         .main-nav { gap: 4px; margin-left: 8px; }
@@ -3070,6 +3262,25 @@ export default function AvtoMixApp() {
         .contact-card-actions .btn { flex: 1; justify-content: center; min-width: 180px; }
         .map-card { display: flex; flex-direction: column; }
         .map-embed-wrap { margin-top: 10px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); flex: 1; }
+
+        .legal-page { max-width: 1150px; }
+        .legal-body { line-height: 1.6; font-size: 16px; }
+        .legal-body h3 { font-size: 20px; font-weight: 700; margin: 32px 0 10px; }
+        .legal-body h3:first-child { margin-top: 8px; }
+        .legal-body p { color: var(--text-muted); margin: 0 0 4px; }
+        .legal-body ul { color: var(--text-muted); margin: 8px 0 4px; padding-left: 20px; line-height: 1.7; }
+        .legal-body li { margin-bottom: 4px; }
+        .legal-updated { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+        .legal-cta { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin: 18px 0 28px; }
+        .legal-cta b { display: block; font-size: 16px; margin-bottom: 4px; color: #fff; }
+        .legal-cta p { margin: 0; font-size: 14px; }
+        .faq-cat { color: var(--accent) !important; margin-top: 34px !important; font-size: 15px !important; text-transform: uppercase; letter-spacing: 0.4px; }
+        .faq-cat:first-child { margin-top: 6px !important; }
+        .faq-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; background: var(--surface); }
+        .faq-question { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: none; border: none; padding: 16px 18px; font-size: 15px; font-weight: 600; color: #fff; text-align: left; cursor: pointer; }
+        .faq-chevron { transition: transform 0.2s ease; color: var(--text-muted); flex-shrink: 0; }
+        .faq-item.open .faq-chevron { transform: rotate(180deg); color: var(--accent); }
+        .faq-answer { padding: 0 18px 18px; color: var(--text-muted); font-size: 14.5px; line-height: 1.65; }
         .map-embed { width: 100%; height: 100%; min-height: 260px; border: 0; display: block; filter: grayscale(0.15) contrast(1.05); }
         .btn.sm { padding: 7px 12px; font-size: 12.5px; }
         @media (max-width: 600px) {
@@ -3398,6 +3609,10 @@ export default function AvtoMixApp() {
       {view === "insurance" && <InsuranceView toast={showToast} />}
 
       {view === "contacts" && <ContactsView social={social} toast={showToast} />}
+
+      {view === "agreement" && <UserAgreementView setView={setView} />}
+      {view === "privacy" && <PrivacyPolicyView />}
+      {view === "faq" && <FaqView setView={setView} />}
 
       {view === "vin" && <VinCheckView toast={showToast} />}
 
