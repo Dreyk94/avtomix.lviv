@@ -287,7 +287,7 @@ function Header({ theme, setTheme, view, setView, query, setQuery, menuOpen, set
               {supabaseReady ? <><LogIn size={14} /> Увійти</> : "Увійти"}
             </button>
           )}
-          <button className="btn primary" onClick={() => setView("submit")}><Plus size={15} className="btn-icon-only" /><span className="btn-label-full">Подати оголошення</span></button>
+          <button className="btn primary" onClick={() => setView("submit")}><Plus size={15} className="btn-icon-only" /><span className="btn-label-full">Розмістити автомобіль</span></button>
         </div>
       </div>
 
@@ -388,7 +388,7 @@ function PromoBanners({ setView }) {
           <div className="promo-icon"><KeyRound size={30} /></div>
           <h3>Хочете продати авто?</h3>
           <p>Розмістіть оголошення та знайдіть покупця швидше.</p>
-          <button className="btn primary lg" onClick={() => setView("submit")}><Plus size={16} /> Подати оголошення</button>
+          <button className="btn primary lg" onClick={() => setView("submit")}><Plus size={16} /> Розмістити автомобіль</button>
         </div>
         <div className="promo-card promo-accent has-photo" style={{ backgroundImage: "linear-gradient(0deg, rgba(10,10,12,0.92), rgba(10,10,12,0.45)), url(/cta-selection.png)" }}>
           <div className="promo-icon"><Search size={30} /></div>
@@ -444,7 +444,7 @@ function HeroBanner({ banner, setView, filters, setFilters }) {
           <p className="hero-sub">{slide.subtitle}</p>
           <div className="hero-actions">
             <button className="btn primary lg" onClick={() => setView(slide.primaryView || "home")}>{slide.primaryLabel || "Переглянути каталог"}</button>
-            <button className="btn outline lg" onClick={() => setView(slide.secondaryView || "submit")}>{slide.secondaryLabel || "Подати оголошення"}</button>
+            <button className="btn outline lg" onClick={() => setView(slide.secondaryView || "submit")}>{slide.secondaryLabel || "Розмістити автомобіль"}</button>
           </div>
         </div>
       </div>
@@ -969,7 +969,7 @@ function PhotoDrop({ photos, setPhotos }) {
 }
 
 
-function SubmitListingView({ addCar, setView, toast, session, profile }) {
+function SubmitListingView({ addCar, setView, toast, session, profile, canPublish }) {
   const [form, setForm] = useState({
     brand: "", model: "", trim: "", year: "", vin: "", engineVolume: "", power: "", fuel: FUEL_TYPES[0],
     trans: TRANSMISSIONS[0], drive: DRIVES[0], color: "", mileage: "", owners: "1", body: BODY_TYPES[0],
@@ -979,26 +979,20 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
   const [submitting, setSubmitting] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  if (supabaseReady && !session) {
+  if (supabaseReady && !canPublish) {
     return (
-      <div className="page-simple narrow">
-        <h2>Подати оголошення</h2>
-        <div className="access-gate">
-          <Lock size={22} />
-          <p>Щоб подати оголошення, спершу увійдіть або зареєструйтесь.</p>
-          <button className="btn primary" onClick={() => setView("auth")}>Увійти / зареєструватись</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (supabaseReady && profile && profile.role === "user") {
-    return (
-      <div className="page-simple narrow">
-        <h2>Подати оголошення</h2>
-        <div className="access-gate">
-          <Lock size={22} />
-          <p>У вашого акаунта поки немає доступу до публікації оголошень. Зверніться до адміністратора сайту, щоб отримати доступ.</p>
+      <div className="submit-gate-overlay">
+        <div className="submit-gate-card">
+          <button className="submit-gate-close" onClick={() => setView("home")} aria-label="Закрити"><X size={18} /></button>
+          <div className="submit-gate-icon"><Lock size={20} /></div>
+          <h3>Хочете розмістити автомобіль?</h3>
+          <p>Публікація автомобілів на AvtoMix доступна за погодженням з адміністрацією сайту.</p>
+          <p className="submit-gate-sub">Зв'яжіться з нами, і ми допоможемо розмістити автомобіль на платформі.</p>
+          <div className="submit-gate-actions">
+            <button className="btn primary lg" onClick={() => setView("contacts")}>Зв'язатися з адміністратором</button>
+            <button className="btn outline lg" onClick={() => setView("home")}>Закрити</button>
+          </div>
+          {!session && <p className="submit-gate-note">Вже маєте доступ від адміністратора? <button className="link-btn" onClick={() => setView("auth")}>Увійдіть у свій акаунт</button>.</p>}
         </div>
       </div>
     );
@@ -1053,7 +1047,7 @@ function SubmitListingView({ addCar, setView, toast, session, profile }) {
 
   return (
     <div className="page-simple narrow">
-      <h2>Подати оголошення</h2>
+      <h2>Розмістити автомобіль</h2>
       <form className="listing-form" onSubmit={submit}>
         <div className="form-section">
           <h4>Основна інформація</h4>
@@ -1603,7 +1597,7 @@ function FaqView({ setView }) {
 
       <h3 className="faq-cat">Оголошення</h3>
       <FaqAccordionItem q="Чи можу я самостійно додати автомобіль?" a={<>Публікація оголошень на AvtoMix доступна не для всіх користувачів. Якщо ви хочете розмістити автомобіль на сайті, зверніться до адміністратора AvtoMix.<br /><button className="btn outline" style={{ marginTop: 12 }} onClick={() => setView("contacts")}>Зв'язатися з адміністратором</button></>} />
-      <FaqAccordionItem q="Чому я не бачу кнопки «Подати оголошення»?" a="Публікація автомобілів доступна лише адміністрації та користувачам, яким надано відповідний доступ." />
+      <FaqAccordionItem q="Чому я не бачу кнопки «Розмістити автомобіль»?" a="Публікація автомобілів доступна лише адміністрації та користувачам, яким надано відповідний доступ." />
       <FaqAccordionItem q="Чи можна змінити інформацію про автомобіль?" a="Так, зміни можуть вноситися адміністрацією або користувачами, які мають відповідні права доступу." />
 
       <h3 className="faq-cat">Покупка</h3>
@@ -2456,7 +2450,7 @@ function MyCabinetView({ cars, session, profile, canPublish, toast, updateCar, d
       </div>
 
       {canPublish && (
-        <button className="btn primary" style={{ marginBottom: 24 }} onClick={() => setView("submit")}><Plus size={15} /> Подати нове оголошення</button>
+        <button className="btn primary" style={{ marginBottom: 24 }} onClick={() => setView("submit")}><Plus size={15} /> Розмістити автомобіль</button>
       )}
 
       <div className="cab-tabs">
@@ -2628,14 +2622,14 @@ export default function AvtoMixApp() {
   });
   const [banner, setBanner] = useState({
     slides: [
-      { image: "/hero-slide-1.png", eyebrow: "AVTO MIX · ЛЬВІВ ТА ЛЬВІВСЬКА ОБЛАСТЬ", title: "Знайдіть своє наступне авто",
-        subtitle: "Переглядайте актуальні оголошення, користуйтеся VIN-перевіркою та знаходьте автомобілі у Львові й Львівській області.",
+      { image: "/hero-slide-1.png", eyebrow: "AVTO MIX · ЛЬВІВ ТА ЛЬВІВСЬКА ОБЛАСТЬ", title: "AvtoMix — автомобілі, які варто купити.",
+        subtitle: "Купуємо, продаємо та підбираємо автомобілі. Допомагаємо перевірити, оцінити та застрахувати авто.",
         bgSize: "auto 118%", bgPosition: "right", bgColor: "#0D0F14",
         primaryLabel: "Переглянути автомобілі", primaryView: "catalog", secondaryLabel: "VIN-перевірка", secondaryView: "vin" },
       { image: "/hero-slide-2.png", eyebrow: "AVTO MIX · ПРОДАЖ АВТО", title: "Продайте авто швидко та без зайвих клопотів",
         subtitle: "Додайте оголошення за кілька хвилин, а покупці знайдуть вас. Перед покупкою перевіряйте автомобіль за VIN.",
         bgSize: "auto 118%", bgPosition: "right", bgColor: "#0D0F14",
-        primaryLabel: "Подати оголошення", primaryView: "submit", secondaryLabel: "Як це працює?", secondaryView: "contacts" },
+        primaryLabel: "Розмістити автомобіль", primaryView: "submit", secondaryLabel: "Як це працює?", secondaryView: "contacts" },
       { image: "/insurance-banner.png", title: "Всі види автострахування", subtitle: "Автоцивілка, Зелена карта, ДЦВ — оформимо поліс за кілька хвилин, без відвідування офісу",
         hideEyebrow: true,
         overlay: "linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.05))",
@@ -3103,6 +3097,19 @@ export default function AvtoMixApp() {
         .listing-form { display: flex; flex-direction: column; gap: 22px; }
         .access-gate { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 34px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-muted); }
         .access-gate p { max-width: 380px; font-size: 14px; line-height: 1.6; }
+
+        .submit-gate-overlay { position: fixed; inset: 0; z-index: 400; background: rgba(6,7,9,0.72); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; animation: gateFadeIn 0.25s ease; }
+        @keyframes gateFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .submit-gate-card { position: relative; background: #15191f; border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 36px 32px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 30px 70px rgba(0,0,0,.5); animation: gateSlideUp 0.3s ease; }
+        @keyframes gateSlideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .submit-gate-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 8px; }
+        .submit-gate-close:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .submit-gate-icon { width: 48px; height: 48px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+        .submit-gate-card h3 { font-size: 21px; margin: 0 0 12px; color: #fff; }
+        .submit-gate-card p { color: var(--text-muted); font-size: 14.5px; line-height: 1.6; margin: 0 0 8px; }
+        .submit-gate-sub { margin-bottom: 22px !important; }
+        .submit-gate-actions { display: flex; flex-direction: column; gap: 10px; }
+        .submit-gate-note { margin-top: 18px !important; font-size: 13px !important; }
         .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
         .form-section h4 { font-size: 14px; margin-bottom: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px; }
         .form-section label { display: block; font-size: 12px; color: var(--text-muted); margin: 0 0 5px; }
@@ -3629,7 +3636,7 @@ export default function AvtoMixApp() {
 
       {view === "auth" && <AuthView setView={setView} toast={showToast} />}
 
-      {view === "submit" && <SubmitListingView addCar={addCar} setView={setView} toast={showToast} session={session} profile={profile} />}
+      {view === "submit" && <SubmitListingView addCar={addCar} setView={setView} toast={showToast} session={session} profile={profile} canPublish={canPublish} />}
 
       {view === "cabinet" && (
         canPublish ? (
